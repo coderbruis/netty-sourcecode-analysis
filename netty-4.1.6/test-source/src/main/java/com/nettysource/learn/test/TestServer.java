@@ -19,9 +19,10 @@ public class TestServer {
     public static void main(String[] args) throws InterruptedException {
         //就是一个死循环，不停地检测IO事件，处理IO事件，执行任务
         //创建一个线程组:接受客户端连接   主线程
-        EventLoopGroup bossGroup=new NioEventLoopGroup(1);//cpu核心数*2
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         //创建一个线程组:接受网络操作   工作线程
-        EventLoopGroup workerGroup=new NioEventLoopGroup();  //cpu核心数*2
+        //cpu核心数*2
+        EventLoopGroup workerGroup=new NioEventLoopGroup();
         //是服务端的一个启动辅助类，通过给他设置一系列参数来绑定端口启动服务
         ServerBootstrap serverBootstrap=new ServerBootstrap();
         // 我们需要两种类型的人干活，一个是老板，一个是工人，老板负责从外面接活，
@@ -29,8 +30,10 @@ public class TestServer {
         serverBootstrap.group(bossGroup,workerGroup)
                 //设置使用NioServerSocketChannel作为服务器通道的实现
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG,128) //设置线程队列中等待连接的个数
-                .childOption(ChannelOption.SO_KEEPALIVE,true)//保持活动连接状态
+                //设置线程队列中等待连接的个数
+                .option(ChannelOption.SO_BACKLOG,128)
+                //保持活动连接状态
+                .childOption(ChannelOption.SO_KEEPALIVE,true)
                 //表示一条新的连接进来之后，该怎么处理，也就是上面所说的，老板如何给工人配活
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
@@ -39,6 +42,7 @@ public class TestServer {
                     }
                 });
         System.out.println(".........server  init..........");
+
         // 这里就是真正的启动过程了，绑定9090端口，等待服务器启动完毕，才会进入下行代码
         ChannelFuture future = serverBootstrap.bind(9090).sync();
         System.out.println(".........server start..........");

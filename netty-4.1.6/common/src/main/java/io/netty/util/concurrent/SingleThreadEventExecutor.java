@@ -46,19 +46,29 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 /**
  * Abstract base class for {@link OrderedEventExecutor}'s that execute all its submitted tasks in a single thread.
  *
+ * 单线程事件执行器？
+ *
  */
 public abstract class SingleThreadEventExecutor extends AbstractScheduledEventExecutor implements OrderedEventExecutor {
 
+    /**
+     * 默认最大等待任务数
+     */
     static final int DEFAULT_MAX_PENDING_EXECUTOR_TASKS = Math.max(16,
             SystemPropertyUtil.getInt("io.netty.eventexecutor.maxPendingTasks", Integer.MAX_VALUE));
 
     private static final InternalLogger logger =
             InternalLoggerFactory.getInstance(SingleThreadEventExecutor.class);
 
+    // 未开始状态
     private static final int ST_NOT_STARTED = 1;
+    // 已开始状态
     private static final int ST_STARTED = 2;
+    // 正在关闭状态
     private static final int ST_SHUTTING_DOWN = 3;
+    // 关闭状态
     private static final int ST_SHUTDOWN = 4;
+    // 终止状态
     private static final int ST_TERMINATED = 5;
 
     private static final Runnable NOOP_TASK = new Runnable() {
@@ -82,10 +92,13 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private final Executor executor;
     private volatile boolean interrupted;
 
+    // 线程锁
     private final CountDownLatch threadLock = new CountDownLatch(1);
     private final Set<Runnable> shutdownHooks = new LinkedHashSet<Runnable>();
     private final boolean addTaskWakesUp;
+    // 最大等待任务数
     private final int maxPendingTasks;
+    // 拒绝执行处理器
     private final RejectedExecutionHandler rejectedExecutionHandler;
 
     private long lastExecutionTime;

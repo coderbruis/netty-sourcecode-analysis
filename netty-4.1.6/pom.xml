@@ -97,180 +97,180 @@
         <testJvm />
       </properties>
     </profile>
-    <!-- JDK16 -->
-    <profile>
-      <id>java16</id>
-      <activation>
-        <jdk>16</jdk>
-      </activation>
-      <properties>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <argLine.java9.extras />
-        <!-- Export some stuff which is used during our tests -->
-        <argLine.java9>--illegal-access=deny ${argLine.java9.extras}</argLine.java9>
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- This is the minimum supported by Java12+ -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <!-- pax-exam does not work on latest Java12 EA 22 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
+<!--    &lt;!&ndash; JDK16 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java16</id>-->
+<!--      <activation>-->
+<!--        <jdk>16</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <argLine.java9.extras />-->
+<!--        &lt;!&ndash; Export some stuff which is used during our tests &ndash;&gt;-->
+<!--        <argLine.java9>&#45;&#45;illegal-access=deny ${argLine.java9.extras}</argLine.java9>-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; This is the minimum supported by Java12+ &ndash;&gt;-->
+<!--        <maven.compiler.source>1.7</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.7</maven.compiler.target>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java12 EA 22 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
-    <!-- JDK15 -->
-    <profile>
-      <id>java15</id>
-      <activation>
-        <jdk>15</jdk>
-      </activation>
-      <properties>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- This is the minimum supported by Java12+ -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <!-- pax-exam does not work on latest Java12 EA 22 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
-    <!-- JDK14 -->
-    <profile>
-      <id>java14</id>
-      <activation>
-        <jdk>14</jdk>
-      </activation>
-      <properties>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- This is the minimum supported by Java12+ -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <!-- pax-exam does not work on latest Java12 EA 22 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
-    <!-- JDK13 -->
-    <profile>
-      <id>java13</id>
-      <activation>
-        <jdk>13</jdk>
-      </activation>
-      <properties>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- This is the minimum supported by Java12+ -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <!-- pax-exam does not work on latest Java12 EA 22 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
+<!--    &lt;!&ndash; JDK15 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java15</id>-->
+<!--      <activation>-->
+<!--        <jdk>15</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; This is the minimum supported by Java12+ &ndash;&gt;-->
+<!--        <maven.compiler.source>1.7</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.7</maven.compiler.target>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java12 EA 22 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
+<!--    &lt;!&ndash; JDK14 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java14</id>-->
+<!--      <activation>-->
+<!--        <jdk>14</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; This is the minimum supported by Java12+ &ndash;&gt;-->
+<!--        <maven.compiler.source>1.7</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.7</maven.compiler.target>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java12 EA 22 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
+<!--    &lt;!&ndash; JDK13 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java13</id>-->
+<!--      <activation>-->
+<!--        <jdk>13</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; This is the minimum supported by Java12+ &ndash;&gt;-->
+<!--        <maven.compiler.source>1.7</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.7</maven.compiler.target>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java12 EA 22 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
-    <!-- JDK12 -->
-    <profile>
-      <id>java12</id>
-      <activation>
-        <jdk>12</jdk>
-      </activation>
-      <properties>
-        <argLine.java9.extras />
-        <!-- Export some stuff which is used during our tests -->
-        <argLine.java9>--illegal-access=deny ${argLine.java9.extras}</argLine.java9>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- This is the minimum supported by Java12+ -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <!-- pax-exam does not work on latest Java12 EA 22 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
+<!--    &lt;!&ndash; JDK12 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java12</id>-->
+<!--      <activation>-->
+<!--        <jdk>12</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        <argLine.java9.extras />-->
+<!--        &lt;!&ndash; Export some stuff which is used during our tests &ndash;&gt;-->
+<!--        <argLine.java9>&#45;&#45;illegal-access=deny ${argLine.java9.extras}</argLine.java9>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; This is the minimum supported by Java12+ &ndash;&gt;-->
+<!--        <maven.compiler.source>1.7</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.7</maven.compiler.target>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java12 EA 22 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
-    <!-- JDK11 -->
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <properties>
-        <argLine.java9.extras />
-        <!-- Export some stuff which is used during our tests -->
-        <argLine.java9>--illegal-access=deny ${argLine.java9.extras}</argLine.java9>
-        <!-- Not use alpn agent as Java11+ supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-        <!-- pax-exam does not work on latest Java11 build -->
-        <skipOsgiTestsuite>true</skipOsgiTestsuite>
-      </properties>
-    </profile>
+<!--    &lt;!&ndash; JDK11 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java11</id>-->
+<!--      <activation>-->
+<!--        <jdk>11</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        <argLine.java9.extras />-->
+<!--        &lt;!&ndash; Export some stuff which is used during our tests &ndash;&gt;-->
+<!--        <argLine.java9>&#45;&#45;illegal-access=deny ${argLine.java9.extras}</argLine.java9>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java11+ supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--        &lt;!&ndash; pax-exam does not work on latest Java11 build &ndash;&gt;-->
+<!--        <skipOsgiTestsuite>true</skipOsgiTestsuite>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
-    <!-- JDK10 -->
-    <profile>
-      <id>java10</id>
-      <activation>
-        <jdk>10</jdk>
-      </activation>
-      <properties>
-        <argLine.java9.extras />
-        <!-- Export some stuff which is used during our tests -->
-        <argLine.java9>--illegal-access=deny --add-modules java.xml.bind ${argLine.java9.extras}</argLine.java9>
-        <!-- Not use alpn agent as Java10 supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
-        <!-- 1.4.x does not work in Java10+ -->
-        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>
-      </properties>
-    </profile>
+<!--    &lt;!&ndash; JDK10 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java10</id>-->
+<!--      <activation>-->
+<!--        <jdk>10</jdk>-->
+<!--      </activation>-->
+<!--      <properties>-->
+<!--        <argLine.java9.extras />-->
+<!--        &lt;!&ndash; Export some stuff which is used during our tests &ndash;&gt;-->
+<!--        <argLine.java9>&#45;&#45;illegal-access=deny &#45;&#45;add-modules java.xml.bind ${argLine.java9.extras}</argLine.java9>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java10 supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>-->
+<!--        &lt;!&ndash; 1.4.x does not work in Java10+ &ndash;&gt;-->
+<!--        <jboss.marshalling.version>2.0.5.Final</jboss.marshalling.version>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
-    <!-- JDK9 -->
-    <profile>
-      <id>java9</id>
-      <properties>
-        <argLine.java9.extras />
-        <!-- Export some stuff which is used during our tests -->
-        <argLine.java9>--illegal-access=deny --add-modules java.xml.bind ${argLine.java9.extras}</argLine.java9>
-        <!-- Not use alpn agent as Java9 supports alpn out of the box -->
-        <argLine.alpnAgent />
-        <!-- Skip as maven plugin not works with Java9 yet -->
-        <forbiddenapis.skip>true</forbiddenapis.skip>
-        <!-- Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 -->
-        <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>
-      </properties>
-      <activation>
-        <jdk>9</jdk>
-      </activation>
-    </profile>
+<!--    &lt;!&ndash; JDK9 &ndash;&gt;-->
+<!--    <profile>-->
+<!--      <id>java9</id>-->
+<!--      <properties>-->
+<!--        <argLine.java9.extras />-->
+<!--        &lt;!&ndash; Export some stuff which is used during our tests &ndash;&gt;-->
+<!--        <argLine.java9>&#45;&#45;illegal-access=deny &#45;&#45;add-modules java.xml.bind ${argLine.java9.extras}</argLine.java9>-->
+<!--        &lt;!&ndash; Not use alpn agent as Java9 supports alpn out of the box &ndash;&gt;-->
+<!--        <argLine.alpnAgent />-->
+<!--        &lt;!&ndash; Skip as maven plugin not works with Java9 yet &ndash;&gt;-->
+<!--        <forbiddenapis.skip>true</forbiddenapis.skip>-->
+<!--        &lt;!&ndash; Needed because of https://issues.apache.org/jira/browse/MENFORCER-275 &ndash;&gt;-->
+<!--        <enforcer.plugin.version>3.0.0-M1</enforcer.plugin.version>-->
+<!--      </properties>-->
+<!--      <activation>-->
+<!--        <jdk>9</jdk>-->
+<!--      </activation>-->
+<!--    </profile>-->
 
     <profile>
       <id>boringssl</id>
