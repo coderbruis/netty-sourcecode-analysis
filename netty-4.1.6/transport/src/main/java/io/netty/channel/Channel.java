@@ -30,14 +30,31 @@ import java.net.SocketAddress;
 /**
  * A nexus to a network socket or a component which is capable of I/O
  * operations such as read, write, connect, and bind.
+ *
+ * 一个网络套接字或组件的枢纽，它能够用来进行网络操作，例如：读、写、链接或者是绑定。
+ *
  * <p>
  * A channel provides a user:
+ *
+ * 一个channel给用户提供以下功能：
+ *
  * <ul>
  * <li>the current state of the channel (e.g. is it open? is it connected?),</li>
+ *
+ * 当前channel的状态（是否是打开，是否是已链接)
+ *
  * <li>the {@linkplain ChannelConfig configuration parameters} of the channel (e.g. receive buffer size),</li>
+ *
+ * channelConfig的配置参数（例如接受缓存大小等）
+ *
  * <li>the I/O operations that the channel supports (e.g. read, write, connect, and bind), and</li>
+ *
+ * channel支持的IO操作（例如入，写，链接以及绑定）
+ *
  * <li>the {@link ChannelPipeline} which handles all I/O events and requests
  *     associated with the channel.</li>
+ *
+ *
  * </ul>
  *
  * <h3>All I/O operations are asynchronous.</h3>

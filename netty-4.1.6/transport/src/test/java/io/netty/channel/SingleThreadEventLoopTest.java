@@ -110,11 +110,19 @@ public class SingleThreadEventLoopTest {
     @Test
     @SuppressWarnings("deprecation")
     public void shutdownAfterStart() throws Exception {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(10);
         loopA.execute(new Runnable() {
             @Override
             public void run() {
-                latch.countDown();
+                for (;;) {
+                    System.out.println(latch.getCount());
+                    if (latch.getCount() >= 1) {
+                        latch.countDown();
+                    } else {
+                        System.out.println("counted all");
+                        break;
+                    }
+                }
             }
         });
 

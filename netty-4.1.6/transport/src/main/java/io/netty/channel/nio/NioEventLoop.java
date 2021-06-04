@@ -443,8 +443,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * NIOEventLoop执行核心
+     */
     @Override
     protected void run() {
+        // 阻塞选择次数
         int selectCnt = 0;
 
         // 轮训注册到selector的IO事件
@@ -473,7 +477,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         }
                         nextWakeupNanos.set(curDeadlineNanos);
                         try {
-                            // 如果没有任务，则select
+                            // 如果没有任务，则select阻塞等待任务
+                            // 任务存放在SingleThreadEventLoop
                             if (!hasTasks()) {
                                 strategy = select(curDeadlineNanos);
                             }
@@ -495,6 +500,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     continue;
                 }
 
+                // 选择次数+1
                 selectCnt++;
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
@@ -832,13 +838,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private int select(long deadlineNanos) throws IOException {
-        // 如果没有任务，则直接阻塞，等待感兴趣的事件
+        // 如果没有任务，则直接阻塞，等待感兴趣的任务事件
         if (deadlineNanos == NONE) {
             return selector.select();
         }
-        // Timeout will only be 0 if deadline is within 5 microsecs
         // 任务超时时间
-        // 计算deadlineNanos - nanoTime()
+        // 计算deadlineNanos - nanoTime()    开始时间 - 当前时间
         long timeoutMillis = deadlineToDelayNanos(deadlineNanos + 995000L) / 1000000L;
         // 如果超时了，则调用非阻塞方法selector#selectNow()
         // 否则，调用阻塞方法，超时时间为timeoutMillis
