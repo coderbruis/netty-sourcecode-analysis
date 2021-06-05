@@ -120,17 +120,23 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
     }
 
     /**
+     *
+     * 从定时任务队列中返回nanoTime内超时的任务
+     *
      * Return the {@link Runnable} which is ready to be executed with the given {@code nanoTime}.
      * You should use {@link #nanoTime()} to retrieve the correct {@code nanoTime}.
      */
     protected final Runnable pollScheduledTask(long nanoTime) {
         assert inEventLoop();
 
+        // peek出截止时间最短的任务
         ScheduledFutureTask<?> scheduledTask = peekScheduledTask();
+        // 定时任务不为空，并且没有超时
         if (scheduledTask == null || scheduledTask.deadlineNanos() - nanoTime > 0) {
             return null;
         }
         scheduledTaskQueue.remove();
+        // 设置成已消费，截止时间为0L
         scheduledTask.setConsumed();
         return scheduledTask;
     }
@@ -152,7 +158,10 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
         return scheduledTask != null ? scheduledTask.deadlineNanos() : -1;
     }
 
-    // 从定时任务队列中弹出任务
+    /**
+     * 从定时任务队列中弹出任务，队列头部的元素是截止时间最短的任务
+     * @return ScheduledFutureTask
+     */
     final ScheduledFutureTask<?> peekScheduledTask() {
         Queue<ScheduledFutureTask<?>> scheduledTaskQueue = this.scheduledTaskQueue;
         return scheduledTaskQueue != null ? scheduledTaskQueue.peek() : null;
@@ -190,6 +199,7 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
         }
         validateScheduled0(delay, unit);
 
+        // 将callable封装成一个ScheduledFutureTask
         return schedule(new ScheduledFutureTask<V>(this, callable, deadlineNanos(unit.toNanos(delay))));
     }
 
@@ -253,11 +263,14 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
     }
 
     private <V> ScheduledFuture<V> schedule(final ScheduledFutureTask<V> task) {
+        // 判断当前的schedule方法是由NioEventLoop发起的还是外部线程发起的
         if (inEventLoop()) {
+            // 直接在定时任务队列里存放
             scheduleFromEventLoop(task);
         } else {
             final long deadlineNanos = task.deadlineNanos();
             // task will add itself to scheduled task queue when run if not expired
+            // 由于定时任务队列是线程不安全的，所以这里开启一个线程来进行添加
             if (beforeScheduledTaskSubmitted(deadlineNanos)) {
                 execute(task);
             } else {

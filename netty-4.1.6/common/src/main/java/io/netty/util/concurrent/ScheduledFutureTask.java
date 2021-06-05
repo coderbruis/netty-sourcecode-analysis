@@ -132,6 +132,11 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
         return unit.convert(delayNanos(), TimeUnit.NANOSECONDS);
     }
 
+    /**
+     * 优先级条件
+     * @param o
+     * @return
+     */
     @Override
     public int compareTo(Delayed o) {
         if (this == o) {
@@ -139,7 +144,9 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
         }
 
         ScheduledFutureTask<?> that = (ScheduledFutureTask<?>) o;
+        // 截止时间
         long d = deadlineNanos() - that.deadlineNanos();
+        // 截止时间越小的放队列前面
         if (d < 0) {
             return -1;
         } else if (d > 0) {

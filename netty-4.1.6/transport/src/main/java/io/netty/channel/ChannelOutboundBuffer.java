@@ -235,6 +235,9 @@ public final class ChannelOutboundBuffer {
     }
 
     /**
+     * 通知ChannelPromise当前消息正在写
+     * 通知ChannelPromise，发送更新进度
+     *
      * Notify the {@link ChannelPromise} of the current message about writing progress.
      */
     public void progress(long amount) {

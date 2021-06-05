@@ -113,6 +113,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
      */
     private Selector selector;
     private Selector unwrappedSelector;
+
+    // 优化过后的set
     private SelectedSelectionKeySet selectedKeys;
 
     private final SelectorProvider provider;
@@ -167,16 +169,24 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    // 获取selector
+    /**
+     * 获取selector
+     *
+     * 1. 需要知道的是，selector中原本就存在了一个HashSet用于存selectionKey，但Netty中为了提高性能，使用了一个优化过的Set，就是
+     * SelectedSelectionKeySet，其内部是通过数组实现的，效率更高，默认大小是1024，不够用时还可以进行扩容操作。
+     *
+     * @return
+     */
     private SelectorTuple openSelector() {
         final Selector unwrappedSelector;
         try {
-            // jdk底层selector获取
+            // 获取jdk底层selector
             unwrappedSelector = provider.openSelector();
         } catch (IOException e) {
             throw new ChannelException("failed to open a new selector", e);
         }
 
+        // 是否对Selector进行优化，默认情况下是false，就表示需要进行下面的逻辑优化，true的话，则直接返回未包装的selector
         if (DISABLE_KEY_SET_OPTIMIZATION) {
             return new SelectorTuple(unwrappedSelector);
         }
@@ -207,14 +217,19 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             return new SelectorTuple(unwrappedSelector);
         }
 
+        // selector的实例对象
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
+
+        // 使用SelectedSelectionKeySet这个数据结构去替换Selector里的keySet
         final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();
 
         Object maybeException = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 try {
+                    // 获取selector实例对象的selectedKeys属性
                     Field selectedKeysField = selectorImplClass.getDeclaredField("selectedKeys");
+                    // 获取selector实例对象的publicSelectedKeysField属性
                     Field publicSelectedKeysField = selectorImplClass.getDeclaredField("publicSelectedKeys");
 
                     if (PlatformDependent.javaVersion() >= 9 && PlatformDependent.hasUnsafe()) {
@@ -243,6 +258,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         return cause;
                     }
 
+                    // 将原本的selectedKeysField、publicSelectedKeysField替换成selectedKeySet对象
                     selectedKeysField.set(unwrappedSelector, selectedKeySet);
                     publicSelectedKeysField.set(unwrappedSelector, selectedKeySet);
                     return null;
@@ -529,6 +545,14 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         ranTasks = runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 } else {
+                    /**
+                     * 在Netty中，有两种任务，普通任务和定时任务。在执行任务的时候，会把定时任务队列里的task扔进普通任务队列里，
+                     * 这里的普通任务队列就是mpscQueue，接着就挨个执行mpscQueue里的任务。
+                     *
+                     * 任务：普通任务 、定时任务
+                     * 队列：普通任务队列mpscQueue 、 定时任务队列
+                     *
+                     */
                     ranTasks = runAllTasks(0); // This will run the minimum number of tasks
                 }
 
@@ -674,13 +698,21 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 优化过后处理SelectedKey方法
+     */
     private void processSelectedKeysOptimized() {
+        // 迭代selectedKey数组
         for (int i = 0; i < selectedKeys.size; ++i) {
             final SelectionKey k = selectedKeys.keys[i];
             // null out entry in the array to allow to have it GC'ed once the Channel close
             // See https://github.com/netty/netty/issues/2363
+
+
+            // 方便GC，这里为啥要方便GC呢？？？？？？？？？？？？？？？？？？？？？？？
             selectedKeys.keys[i] = null;
 
+            // 获取注册到NioEventLoop里的channel
             final Object a = k.attachment();
 
             if (a instanceof AbstractNioChannel) {
@@ -703,7 +735,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {
+        // 获取channel内部的unsafe方法
         final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();
+        // 如果key不合法
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {
@@ -720,19 +754,30 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // See https://github.com/netty/netty/issues/5125
             if (eventLoop == this) {
                 // close the channel if the key is not valid anymore
+                // 关闭通道，如果key是非法的
                 unsafe.close(unsafe.voidPromise());
             }
             return;
         }
 
         try {
+            // 获取感兴趣的IO事件
             int readyOps = k.readyOps();
             // We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise
             // the NIO JDK channel implementation may throw a NotYetConnectedException.
+            // 如果当前感兴趣事件不是连接事件
             if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
                 // remove OP_CONNECT as otherwise Selector.select(..) will always return without blocking
                 // See https://github.com/netty/netty/issues/924
                 int ops = k.interestOps();
+                /**
+                 * 将ops事件设置成OP_CONNECT事件
+                 * 另外一种写法为：
+                 *
+                 * k.interestOps(readyOps & ~SelectionKey.OP_CONNECT)
+                 * OP_CONNECT是8，即1000，取反则为：111，如果k是0，则 000 & 111 = 000
+                 *
+                 */
                 ops &= ~SelectionKey.OP_CONNECT;
                 k.interestOps(ops);
 
@@ -747,6 +792,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
             // to a spin loop
+            // readyOps = 0 表示的是channel注册事件
+            // 如果是workerGroup，可能是OP_READ的IO事件，如果是bossGroup，可能是OP_ACCEPT的IO事件
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 unsafe.read();
             }

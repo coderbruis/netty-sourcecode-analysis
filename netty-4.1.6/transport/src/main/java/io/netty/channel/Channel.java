@@ -58,12 +58,18 @@ import java.net.SocketAddress;
  * </ul>
  *
  * <h3>All I/O operations are asynchronous.</h3>
+ *
+ * 所有的IO操作都是异步的
+ *
  * <p>
  * All I/O operations in Netty are asynchronous.  It means any I/O calls will
  * return immediately with no guarantee that the requested I/O operation has
  * been completed at the end of the call.  Instead, you will be returned with
  * a {@link ChannelFuture} instance which will notify you when the requested I/O
  * operation has succeeded, failed, or canceled.
+ *
+ * 所有在Netty中的IO操作都是异步的，这意味着任何的IO调用都会在IO操作请求完成时无保证的返回。
+ * 作为替代，你回被返回一个ChannelFuture实例，这个实例会通知你表明IO请求操作是已经成功、失败或者还是被取消。
  *
  * <h3>Channels are hierarchical</h3>
  * <p>

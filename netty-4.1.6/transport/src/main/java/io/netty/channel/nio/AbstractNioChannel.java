@@ -50,6 +50,11 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     private static final InternalLogger logger =
             InternalLoggerFactory.getInstance(AbstractNioChannel.class);
 
+    /**
+     * 由于NIO Channel、NioSocketChannel和NioServerSocketChannel需要共用，所以定义了一个
+     * java.nio.SocketChannel和java.nio.ServerSocketChannel的公共父类SelectableChanel。
+     * 这个公共父类用于设置IO操作
+     */
     private final SelectableChannel ch;
     protected final int readInterestOp;
     volatile SelectionKey selectionKey;
@@ -377,6 +382,19 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         boolean selected = false;
         for (;;) {
             try {
+                /**
+                 * 调用selectableChannel的register方法，用于在给定的selector上注册这个通道channel，并返回一个选择键
+                 *
+                 * OP_READ = 1 << 0                 读操作位
+                 * OP_WRITE = 1 << 2                写操作位
+                 * OP_CONNECT = 1 << 3              客户端连接到服务端操作位
+                 * OP_ACCEPT = 1 << 4               服务端接受客户端链接操作位
+                 *
+                 * 此处调用了jdk nio的selectableChannel的register方法，传入的操作位是0，表明对任何事件都不感兴趣，仅仅是完成注册操作。
+                 *
+                 * 向selector注册channel成功后，会返回一个selectionKey，后续可以拿着这个selectionKey获取到channel。
+                 *
+                 */
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {
@@ -399,10 +417,15 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         eventLoop().cancel(selectionKey());
     }
 
+    /**
+     * 准备处理读操作之前，需要设置网络操作位为读
+     * @throws Exception
+     */
     @Override
     protected void doBeginRead() throws Exception {
         // Channel.read() or ChannelHandlerContext.read() was called
         final SelectionKey selectionKey = this.selectionKey;
+        // 判断selectionKey是否可用，没有被取消 ========================== selectionkey什么情况下不可用？
         if (!selectionKey.isValid()) {
             return;
         }
@@ -410,7 +433,10 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         readPending = true;
 
         final int interestOps = selectionKey.interestOps();
+
+        // 表明目前并没有设置读操作位
         if ((interestOps & readInterestOp) == 0) {
+            // 设置成读操作位
             selectionKey.interestOps(interestOps | readInterestOp);
         }
     }

@@ -21,8 +21,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * 数组实现的一个Set，用于存放Selectionkey，数组默认大小是1024
+ */
 final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
 
+    // 存放选择键的数组
     SelectionKey[] keys;
     int size;
 
@@ -30,6 +34,11 @@ final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
         keys = new SelectionKey[1024];
     }
 
+    /**
+     * 向selectedSelectionkey中添加selectionkey
+     * @param o
+     * @return
+     */
     @Override
     public boolean add(SelectionKey o) {
         if (o == null) {
@@ -93,6 +102,9 @@ final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
         size = 0;
     }
 
+    /**
+     * 扩容两倍
+     */
     private void increaseCapacity() {
         SelectionKey[] newKeys = new SelectionKey[keys.length << 1];
         System.arraycopy(keys, 0, newKeys, 0, size);

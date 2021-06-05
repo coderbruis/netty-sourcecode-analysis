@@ -46,6 +46,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             " (expected: " + StringUtil.simpleClassName(ByteBuf.class) + ", " +
             StringUtil.simpleClassName(FileRegion.class) + ')';
 
+    /**
+     * 负责写半包的消息
+     */
     private final Runnable flushTask = new Runnable() {
         @Override
         public void run() {
@@ -215,13 +218,18 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
     private int doWriteInternal(ChannelOutboundBuffer in, Object msg) throws Exception {
         if (msg instanceof ByteBuf) {
             ByteBuf buf = (ByteBuf) msg;
+            // 如果消息是ByteBuf类型的，并且没有可读的字节数，说明该消息不可读，直接丢弃，从Buffer中删除该消息。
             if (!buf.isReadable()) {
                 in.remove();
                 return 0;
             }
 
+            // 接下来表明ByteBuf有可读的字节
+
+            // 发送消息，并返回本地需要发送的字节数
             final int localFlushedAmount = doWriteBytes(buf);
             if (localFlushedAmount > 0) {
+                // 通知ChannelPromise，发送更新进度
                 in.progress(localFlushedAmount);
                 if (!buf.isReadable()) {
                     in.remove();
@@ -254,9 +262,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
         int writeSpinCount = config().getWriteSpinCount();
         do {
+            // 从buffer（环形数组）拿出一条消息
             Object msg = in.current();
             if (msg == null) {
                 // Wrote all messages.
+                // 如果buffer里的消息为空，则表明已经flush出去了，则清楚“半包标识”。
                 clearOpWrite();
                 // Directly return here so incompleteWrite(...) is not called.
                 return;
@@ -286,6 +296,10 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 "unsupported message type: " + StringUtil.simpleClassName(msg) + EXPECTED_TYPES);
     }
 
+    /**
+     * 设置半包标识，防止粘包
+     * @param setOpWrite
+     */
     protected final void incompleteWrite(boolean setOpWrite) {
         // Did not write completely.
         if (setOpWrite) {
@@ -322,6 +336,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
      */
     protected abstract int doWriteBytes(ByteBuf buf) throws Exception;
 
+    /**
+     * 半包标识：标识 网络操作位为读
+     */
     protected final void setOpWrite() {
         final SelectionKey key = selectionKey();
         // Check first if the key is still valid as it may be canceled as part of the deregistration
@@ -336,6 +353,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
         }
     }
 
+    /**
+     * 清楚半包标识
+     */
     protected final void clearOpWrite() {
         final SelectionKey key = selectionKey();
         // Check first if the key is still valid as it may be canceled as part of the deregistration
