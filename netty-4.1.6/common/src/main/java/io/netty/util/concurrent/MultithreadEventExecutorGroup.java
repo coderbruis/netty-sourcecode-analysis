@@ -77,6 +77,8 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
+            // DefaultThreadFactory会生成 FastThreadLocalThread
+            // ThreadPerTaskExecutor意味着为当前的事件循环组创建Executor，用于针对每一个任务的Executor
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
@@ -112,6 +114,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        // 挑选出children里的元素，即NioEventLoop
         chooser = chooserFactory.newChooser(children);
 
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {

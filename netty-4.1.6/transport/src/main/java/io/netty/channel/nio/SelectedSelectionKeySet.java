@@ -22,6 +22,11 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
+ * JDK 的selector底层是用的HashSet，而HashSet又是基于HashMap底层的，HashMap的add时间复杂度最优是
+ * O(1)即当没有哈希冲突的时候，如果有哈希冲突的时候，并且子节点未形成红黑树（JDK1.8）的时候，最差的时间复杂度是
+ * O(n)，所以Netty将JDK的selector优化为了底层使用了数组的SelectedSelectionKey，add的时间复杂度无论在
+ * 什么时候都是O（1）
+ *
  * 数组实现的一个Set，用于存放Selectionkey，数组默认大小是1024
  */
 final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {

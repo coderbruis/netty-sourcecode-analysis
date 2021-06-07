@@ -24,6 +24,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ *
+ * 默认线程工厂
+ *
  * A {@link ThreadFactory} implementation with a simple naming rule.
  */
 public class DefaultThreadFactory implements ThreadFactory {
@@ -118,6 +121,13 @@ public class DefaultThreadFactory implements ThreadFactory {
         return t;
     }
 
+    /**
+     * 返回一个线程，一个FastThreadLocalThread线程，在ThreadLocal基础上优化过的
+     *
+     * @param r             线程
+     * @param name          线程名称
+     * @return
+     */
     protected Thread newThread(Runnable r, String name) {
         return new FastThreadLocalThread(threadGroup, r, name);
     }

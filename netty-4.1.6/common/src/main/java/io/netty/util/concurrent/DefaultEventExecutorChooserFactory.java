@@ -30,8 +30,14 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
     private DefaultEventExecutorChooserFactory() { }
 
+    /**
+     * 挑选出NioEventLoop，优化过的
+     * @param executors
+     * @return
+     */
     @Override
     public EventExecutorChooser newChooser(EventExecutor[] executors) {
+        // 2的幂方，则使用优化过后的方法
         if (isPowerOfTwo(executors.length)) {
             return new PowerOfTwoEventExecutorChooser(executors);
         } else {

@@ -943,6 +943,12 @@ public final class PlatformDependent {
             }
         }
 
+        /**
+         * mpscQueue队列
+         * @param maxCapacity
+         * @param <T>
+         * @return
+         */
         static <T> Queue<T> newMpscQueue(final int maxCapacity) {
             // Calculate the max capacity which can not be bigger than MAX_ALLOWED_MPSC_CAPACITY.
             // This is forced by the MpscChunkedArrayQueue implementation as will try to round it
