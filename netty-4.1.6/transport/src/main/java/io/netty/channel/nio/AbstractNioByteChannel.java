@@ -61,6 +61,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
     /**
      * Create a new instance
+     * 产生一个AbstractNioByteChannel，并注册上了OP_READ时间，
+     * 即和客户端注册了连接之后，后续会对READ事件感兴趣
      *
      * @param parent            the parent {@link Channel} by which this instance was created. May be {@code null}
      * @param ch                the underlying {@link SelectableChannel} on which it operates
@@ -97,6 +99,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 ((SocketChannelConfig) config).isAllowHalfClosure();
     }
 
+    /**
+     * 负责客户端channel读、写
+     */
     protected class NioByteUnsafe extends AbstractNioUnsafe {
 
         private void closeOnRead(ChannelPipeline pipeline) {
@@ -134,6 +139,9 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             }
         }
 
+        /**
+         * 客户端channel的读，读取的是数据
+         */
         @Override
         public final void read() {
             final ChannelConfig config = config();

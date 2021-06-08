@@ -55,16 +55,30 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
         super.doBeginRead();
     }
 
+    /**
+     * 负责服务端channel读、写
+     */
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
         private final List<Object> readBuf = new ArrayList<Object>();
 
+        /**
+         * read()方法的核心三个步骤：
+         * 1. doReadMessages(readBuf)
+         * 2. allocHandle.incMessagesRead(localRead)
+         * 3. pipeline.fireChannelRead(readBuf.get(i))
+         *
+         */
         @Override
         public void read() {
             assert eventLoop().inEventLoop();
+            // 服务端的Config
             final ChannelConfig config = config();
+            // pipleline管道
             final ChannelPipeline pipeline = pipeline();
+            // 用于查看服务端接受的速率, 说白了就是控制服务端是否接着read 客户端的IO事件
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
+            // 重置配置
             allocHandle.reset(config);
 
             boolean closed = false;
@@ -81,6 +95,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                             break;
                         }
 
+                        // 简单的计数
                         allocHandle.incMessagesRead(localRead);
                     } while (allocHandle.continueReading());
                 } catch (Throwable t) {
@@ -90,15 +105,21 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    // 处理新的连接之后，让pipeline中发生事件传播
+                    // 这里的pipeline是服务端的
+                    // 事件是如何传播的？head --> ServerBootStrapAcceptor --> tail 依次传播
+                    // 这里传播的什么事件?  ChannelRead,  也就是说,会去调用 ServerBootStraptAcceptor的ChannelRead方法
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();
                 allocHandle.readComplete();
+                // 传播channelReadComplete事件
                 pipeline.fireChannelReadComplete();
 
                 if (exception != null) {
                     closed = closeOnReadError(exception);
 
+                    // 传播exceptionCaught事件
                     pipeline.fireExceptionCaught(exception);
                 }
 

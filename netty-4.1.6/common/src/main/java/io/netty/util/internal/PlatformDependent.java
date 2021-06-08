@@ -289,6 +289,8 @@ public final class PlatformDependent {
 
     /**
      * Returns {@code true} if and only if the current platform is Android
+     * Netty也是支持android网络通信的
+     *
      */
     public static boolean isAndroid() {
         return PlatformDependent0.isAndroid();

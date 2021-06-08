@@ -83,9 +83,12 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      */
     protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
         super(parent);
+        // 保存jdk的客户端channel
         this.ch = ch;
+        // 保存感兴趣的事件
         this.readInterestOp = readInterestOp;
         try {
+            // 开启非阻塞模式
             ch.configureBlocking(false);
         } catch (IOException e) {
             try {
@@ -332,9 +335,11 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             // Note this method is invoked by the event loop only if the connection attempt was
             // neither cancelled nor timed out.
 
+            // 当前的线程必须是在EventLoop里面的线程才有资格执行
             assert eventLoop().inEventLoop();
 
             try {
+                // 判断通道是否open，链接是否已绑定
                 boolean wasActive = isActive();
                 doFinishConnect();
                 fulfillConnectPromise(connectPromise, wasActive);

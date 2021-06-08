@@ -52,6 +52,7 @@ import java.util.concurrent.Executor;
 import static io.netty.channel.internal.ChannelUtils.MAX_BYTES_PER_GATHERING_WRITE_ATTEMPTED_LOW_THRESHOLD;
 
 /**
+ * 客户端channel
  * {@link io.netty.channel.socket.SocketChannel} which uses NIO selector based implementation.
  */
 public class NioSocketChannel extends AbstractNioByteChannel implements io.netty.channel.socket.SocketChannel {
@@ -65,6 +66,8 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
              *  {@link SelectorProvider#provider()} which is called by each SocketChannel.open() otherwise.
              *
              *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
+             *
+             *  开启jdk底层socketChannel
              */
             return provider.openSocketChannel();
         } catch (IOException e) {
@@ -72,6 +75,9 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
         }
     }
 
+    /**
+     * socketChannel的配置
+     */
     private final SocketChannelConfig config;
 
     /**
@@ -97,12 +103,15 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
 
     /**
      * Create a new instance
+     * 创建一个客户端channel实例
      *
      * @param parent    the {@link Channel} which created this instance or {@code null} if it was created by the user
      * @param socket    the {@link SocketChannel} which will be used
      */
     public NioSocketChannel(Channel parent, SocketChannel socket) {
+        // 在父类AbstractNioChannel中配置READ事件，并开启非阻塞模式
         super(parent, socket);
+        // 配置客户端socket
         config = new NioSocketChannelConfig(this, socket.socket());
     }
 

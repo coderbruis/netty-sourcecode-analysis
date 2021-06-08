@@ -115,6 +115,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private Selector unwrappedSelector;
 
     // 优化过后的set
+    // 当有新IO请求进来，jdk原生的Selector会将SelectionKey放入存放着感兴趣的key集合中，即SelectedSelectionKeySet中
+    // 疑问，这里感兴趣的key是怎么存放到这个SelectedSelectionKeySet的？？
     private SelectedSelectionKeySet selectedKeys;
 
     private final SelectorProvider provider;
@@ -633,6 +635,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKeys() {
+        // selectedKeys默认不为空，这块selectedKeys就是经过优化过后的keys
         if (selectedKeys != null) {
             processSelectedKeysOptimized();
         } else {
@@ -710,12 +713,17 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
 
             // 方便GC，这里为啥要方便GC呢？？？？？？？？？？？？？？？？？？？？？？？
+            // 这种感兴趣的事件只处理一次就行
             selectedKeys.keys[i] = null;
 
             // 获取注册到NioEventLoop里的channel
+            // 获取出 attachment,默认情况下就是注册进Selector时,传入的第三个参数  this===>   NioServerSocketChannel
+            // 一个Selector中可能被绑定上了成千上万个Channel,  通过K+attachment 的手段, 精确的取出发生指定事件的channel, 进而获取channel中的unsafe类进行下一步处理
             final Object a = k.attachment();
 
             if (a instanceof AbstractNioChannel) {
+                // 这里为啥要将NioServerSocketChannel强转为AbstractNioChannel呢？
+                // Todo 答：这里强转为AbstractNioChannel是为了准备调用jdk channel的accept方法
                 processSelectedKey(k, (AbstractNioChannel) a);
             } else {
                 @SuppressWarnings("unchecked")
@@ -795,6 +803,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // readyOps = 0 表示的是channel注册事件
             // 如果是workerGroup，可能是OP_READ的IO事件，如果是bossGroup，可能是OP_ACCEPT的IO事件
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+                // 负责读
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

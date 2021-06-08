@@ -50,6 +50,8 @@ public class DefaultSocketChannelConfig extends DefaultChannelConfig
         // Enable TCP_NODELAY by default if possible.
         if (PlatformDependent.canEnableTcpNoDelayByDefault()) {
             try {
+                // 开启Nagle算法，即将小的数据包聚集成大的数据包之后再统一发送包
+                // todo netty默认是关闭的，是为了能够及时发送数据包出去
                 setTcpNoDelay(true);
             } catch (Exception e) {
                 // Ignore.
@@ -247,6 +249,11 @@ public class DefaultSocketChannelConfig extends DefaultChannelConfig
         return this;
     }
 
+    /**
+     * 禁止Nagle算法
+     * @param tcpNoDelay
+     * @return
+     */
     @Override
     public SocketChannelConfig setTcpNoDelay(boolean tcpNoDelay) {
         try {
