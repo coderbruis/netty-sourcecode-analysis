@@ -18,6 +18,8 @@ package io.netty.bootstrap;
 import io.netty.channel.Channel;
 
 /**
+ * 抽象出创建channel的一个能力，用于创建出channel
+ *
  * @deprecated Use {@link io.netty.channel.ChannelFactory} instead.
  */
 @Deprecated

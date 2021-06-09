@@ -21,8 +21,17 @@ import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Set;
 
+/**
+ * 封装了SelectedSelectionKeySet和Selector的包装类
+ */
 final class SelectedSelectionKeySetSelector extends Selector {
+    /**
+     * 新优化的selectionKeys
+     */
     private final SelectedSelectionKeySet selectionKeys;
+    /**
+     * 代理selector，在windows系统中是WindowsSelectorImpl
+     */
     private final Selector delegate;
 
     SelectedSelectionKeySetSelector(Selector delegate, SelectedSelectionKeySet selectionKeys) {

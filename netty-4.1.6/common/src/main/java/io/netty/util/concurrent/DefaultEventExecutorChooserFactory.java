@@ -32,7 +32,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
     /**
      * 挑选出NioEventLoop，优化过的
-     * @param executors
+     * @param executors             NioEventLoop
      * @return
      */
     @Override

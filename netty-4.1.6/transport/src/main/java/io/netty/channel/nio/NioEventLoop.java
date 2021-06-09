@@ -144,7 +144,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         this.provider = ObjectUtil.checkNotNull(selectorProvider, "selectorProvider");
         this.selectStrategy = ObjectUtil.checkNotNull(strategy, "selectStrategy");
         final SelectorTuple selectorTuple = openSelector();
+        // 这里其实获取的是SelectedSelectionKeySetSelector对象
         this.selector = selectorTuple.selector;
+        // 为包装的原生selector，即WindowsSelectorImpl
         this.unwrappedSelector = selectorTuple.unwrappedSelector;
     }
 
@@ -156,8 +158,17 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         return queueFactory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
     }
 
+    /**
+     * selector元祖
+     */
     private static final class SelectorTuple {
+        /**
+         * 未包装过的selector
+         */
         final Selector unwrappedSelector;
+        /**
+         * SelectedSelectionKeySetSelector对象
+         */
         final Selector selector;
 
         SelectorTuple(Selector unwrappedSelector) {
@@ -193,7 +204,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             return new SelectorTuple(unwrappedSelector);
         }
 
-        // selector的实现类
+        // selector的实现类    sun.nio.ch.SelectorImpl
         Object maybeSelectorImplClass = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
@@ -209,6 +220,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
         });
 
+        // 判断下maybeSelectorImplClass是不是class类，然后判断maybeSelectorImplClass是不是unwrappedSelector的子类
         if (!(maybeSelectorImplClass instanceof Class) ||
             // ensure the current selector implementation is what we can instrument.
             !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {
@@ -219,7 +231,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             return new SelectorTuple(unwrappedSelector);
         }
 
-        // selector的实例对象
+        // selector的实例对象    sun.nio.ch.SelectorImpl
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
 
         // 使用SelectedSelectionKeySet这个数据结构去替换Selector里的keySet
