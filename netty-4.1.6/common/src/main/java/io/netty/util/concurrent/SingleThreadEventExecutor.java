@@ -361,6 +361,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     /**
+     * 向任务队列中添加一个任务
+     *
      * Add a task to the task queue, or throws a {@link RejectedExecutionException} if this instance was shutdown
      * before.
      */
@@ -864,7 +866,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
         // 判断当前线程是在NioEventLoop线程内，还是在外部线程               ？？？？这里没搞明白NioEventLoop线程和外部线程的区别
         boolean inEventLoop = inEventLoop();
+        // 如果是NioEventLoop线程，就只需要等待消费task里的任务即可
         addTask(task);
+
+        // 如果是外部线程调用的
         if (!inEventLoop) {
             startThread();
             if (isShutdown()) {
@@ -978,11 +983,16 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 
+    /**
+     * 核心工作就是启动NioEventLoop
+     */
     private void startThread() {
+        // 状态任然未开始
         if (state == ST_NOT_STARTED) {
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 boolean success = false;
                 try {
+                    // 启动外部线程
                     doStartThread();
                     success = true;
                 } finally {
@@ -1012,8 +1022,16 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         return false;
     }
 
+    /**
+     * 核心工作就是启动NioEventLoop线程
+     */
     private void doStartThread() {
         assert thread == null;
+
+        /**
+         * 1. 这里executor是ThreadExecutorMap对象
+         * 2. 执行的runnable是FastThreadLocalRunnable对象
+         */
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -1025,6 +1043,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 boolean success = false;
                 updateLastExecutionTime();
                 try {
+                    // 核心，就是启动NioEventLoop！！！
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

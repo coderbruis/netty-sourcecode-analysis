@@ -25,7 +25,9 @@ public class ServerTest {
 
         /**
          * NioEventLoopGroup其实就是一个线程组，存放NioEventLoop的一个Group
-         * 每个NioEventLoop都喝一个Selector绑定？？？？？？？？？？？？？？？？？？
+         * 每个NioEventLoop都和一个Selector绑定？？？？？？？？？？？？？？？？？？
+         * 这里bossGroup启动的是一个NioEventLoop；
+         * 这里workerGroup没有传入参数，则默认启动CPU * 2 个NioEventLoop
          *
          */
         NioEventLoopGroup boosGroup = new NioEventLoopGroup(1);
@@ -49,6 +51,11 @@ public class ServerTest {
                         }
                     });
 
+            /**
+             * 端口绑定
+             *
+             * sync()是等待ChannelFuture完成，这里调用的是DefaultChannelPromise#sync()方法
+             */
             ChannelFuture future = bootstrap.bind(8888).sync();
             future.channel().closeFuture().sync();
         } finally {

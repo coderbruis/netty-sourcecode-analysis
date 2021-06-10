@@ -31,6 +31,13 @@ import java.util.Map;
  */
 public abstract class AbstractBootstrapConfig<B extends AbstractBootstrap<B, C>, C extends Channel> {
 
+    /**
+     * 赋值ServerBootstrap，这个服务端的ServerBootStrap存储Netty核心对象
+     * 1. NioServerSocketChannel
+     * 2. boosGroup、workerGroup
+     * 3. Option、attr
+     * 4. Handler
+     */
     protected final B bootstrap;
 
     protected AbstractBootstrapConfig(B bootstrap) {

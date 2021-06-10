@@ -30,6 +30,10 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 
     private final Constructor<? extends T> constructor;
 
+    /**
+     * 这里的clazz传入的是NioServerSocketChannel对象
+     * @param clazz
+     */
     public ReflectiveChannelFactory(Class<? extends T> clazz) {
         ObjectUtil.checkNotNull(clazz, "clazz");
         try {

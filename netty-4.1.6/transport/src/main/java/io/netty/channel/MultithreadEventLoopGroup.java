@@ -82,8 +82,14 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
     @Override
     protected abstract EventLoop newChild(Executor executor, Object... args) throws Exception;
 
+    /**
+     * 注册NioServerSocketChannel
+     * @param channel
+     * @return
+     */
     @Override
     public ChannelFuture register(Channel channel) {
+        // next() 拿去到了NioEventLoop
         return next().register(channel);
     }
 

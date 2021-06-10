@@ -290,6 +290,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
+            // 此时我们已经知道NioServerSocketChannel已经完成了注册
             ChannelPromise promise = channel.newPromise();
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
@@ -321,6 +322,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         Channel channel = null;
         try {
             // 拿到ReflectiveChannelFactory，然后通过其newChannel生成一个服务端Channel，底层就是通过反射newInstance()获取实例
+            // 这里自然是NioServerSocketChannel实例对象
             channel = channelFactory.newChannel();
             // 初始化channel
             init(channel);
@@ -335,6 +337,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
+        /**
+         * config() -> ServerBootstrapConfig
+         * group() -> NioEventLoopGroup，返回的是MultithreadEventLoopGroup
+         * register() -> 就是通过chooser选取到NioEventLoop对象
+         */
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

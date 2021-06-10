@@ -50,6 +50,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     // purposes.
     private final Map<ChannelOption<?>, Object> childOptions = new LinkedHashMap<ChannelOption<?>, Object>();
     private final Map<AttributeKey<?>, Object> childAttrs = new ConcurrentHashMap<AttributeKey<?>, Object>();
+
+    /**
+     * ServerBootStrapConfig父类是AbstractBootstrapConfig，其有一个非常重要的属性bootstrap，
+     * 存储这ServerBootstrap对象
+     */
     private final ServerBootstrapConfig config = new ServerBootstrapConfig(this);
 
     /**
@@ -157,6 +162,10 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
+
+                /**
+                 * 拿出NioServerSocketChannel绑定的NioEventLoop来执行以下线程
+                 */
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {

@@ -399,6 +399,9 @@ public abstract class AbstractNioChannel extends AbstractChannel {
                  *
                  * 向selector注册channel成功后，会返回一个selectionKey，后续可以拿着这个selectionKey获取到channel。
                  *
+                 * javaChannel()拿到的是：AbstractSelectableChannel，在其register方法里，会调用addKey，给selectionKey添加默认数组大小3
+                 * 并最终调用jdk底层register
+                 *
                  */
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
