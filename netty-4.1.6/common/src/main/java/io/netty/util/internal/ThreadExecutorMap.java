@@ -51,6 +51,13 @@ public final class ThreadExecutorMap {
     public static Executor apply(final Executor executor, final EventExecutor eventExecutor) {
         ObjectUtil.checkNotNull(executor, "executor");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
+        /**
+         * 生成的一个ThreadExecutorMap的匿名内部的Executor类
+         *
+         * TODO 这里的command线程是哪里传进来的呢？？？
+         * 这里是SingleThreadEventExecutor传过来的一个匿名Runnable内部类
+         *
+         */
         return new Executor() {
             @Override
             public void execute(final Runnable command) {

@@ -866,11 +866,17 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
         // 判断当前线程是在NioEventLoop线程内，还是在外部线程               ？？？？这里没搞明白NioEventLoop线程和外部线程的区别
         boolean inEventLoop = inEventLoop();
-        // 如果是NioEventLoop线程，就只需要等待消费task里的任务即可
+        /**
+         * 这里添加的Task是一个注册NioServerSocketChannel的任务！
+         * 是AbstractChannel$AbstractUnsafe的一个匿名Runnable类
+         */
         addTask(task);
 
         // 如果是外部线程调用的
         if (!inEventLoop) {
+            /**
+             * 这里启动一个线程，就是NioEventLoop！！启动的是NioEventLoop
+             */
             startThread();
             if (isShutdown()) {
                 boolean reject = false;
@@ -1029,8 +1035,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         assert thread == null;
 
         /**
-         * 1. 这里executor是ThreadExecutorMap对象
-         * 2. 执行的runnable是FastThreadLocalRunnable对象
+         * 1. 这里executor是ThreadExecutorMap类中的一个匿名Executor内部类，是Executor apply()这个方法返回的实例对象
+         * 2. 这里传入的execute()里面的匿名内部类是SingleThreadEventExecutor中的，所以
+         *      是SingleThreadEventExecutor$对象
+         * 3. 执行的runnable是FastThreadLocalRunnable对象
          */
         executor.execute(new Runnable() {
             @Override
