@@ -60,6 +60,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
      */
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
+        /**
+         * 这里拿到的是NioSocketChannel对象，，，，
+         */
         private final List<Object> readBuf = new ArrayList<Object>();
 
         /**
@@ -109,6 +112,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                     // 这里的pipeline是服务端的
                     // 事件是如何传播的？head --> ServerBootStrapAcceptor --> tail 依次传播
                     // 这里传播的什么事件?  ChannelRead,  也就是说,会去调用 ServerBootStraptAcceptor的ChannelRead方法
+                    // readBuf.get(i)这里获取到的是NioSocketChannel对象
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();

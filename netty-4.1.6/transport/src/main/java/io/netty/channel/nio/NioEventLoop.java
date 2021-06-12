@@ -649,11 +649,15 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 处理感兴趣的事件         --------- 选择键
+     */
     private void processSelectedKeys() {
         // selectedKeys默认不为空，这块selectedKeys就是经过优化过后的keys
         if (selectedKeys != null) {
             processSelectedKeysOptimized();
         } else {
+            // TODO 之类什么情况下会出现接收到了感兴趣的key，但是selectedKeys为null？？？
             processSelectedKeysPlain(selector.selectedKeys());
         }
     }
@@ -746,6 +750,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 processSelectedKey(k, task);
             }
 
+            // TODO 什么情况下这里会出现true的情况，需要重新select
             if (needsToSelectAgain) {
                 // null out entries in the array to allow to have it GC'ed once the Channel close
                 // See https://github.com/netty/netty/issues/2363
@@ -921,6 +926,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         return timeoutMillis <= 0 ? selector.selectNow() : selector.select(timeoutMillis);
     }
 
+    /**
+     * 重新selecte阻塞，去监听感兴趣的事件        --------- 选择键
+     */
     private void selectAgain() {
         needsToSelectAgain = false;
         try {

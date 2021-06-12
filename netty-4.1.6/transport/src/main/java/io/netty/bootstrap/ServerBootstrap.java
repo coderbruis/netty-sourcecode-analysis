@@ -165,6 +165,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
                 /**
                  * 拿出NioServerSocketChannel绑定的NioEventLoop来执行以下线程
+                 *
+                 * TODO 这里addLast进来的ServerBootstrapAccetor是用于workerGroup注册客户端用的！
+                 * TODO 这里的pipeline扮演这很重要的作用。
                  */
                 ch.eventLoop().execute(new Runnable() {
                     @Override
@@ -220,7 +223,8 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         }
 
         /**
-         * 通道读事件处理？？？？？？？？？？？
+         * 给workergroup进行客户端注册工作
+         *
          * @param ctx
          * @param msg
          */
