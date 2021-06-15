@@ -25,6 +25,15 @@ import io.netty.util.concurrent.EventExecutor;
 import java.nio.channels.Channels;
 
 /**
+ * ChannelHandlerContext接口定义了能够让ChannelHandler和ChannelPipeline互相交互的能力，
+ *
+ * 1. ChannelHandlerContext继承了AttributeMap，表明它有自定义存取map的能力
+ * 2. ChannelHandlerContext继承了ChannelInboundInvoker，表明它能够对inbound事件传播的监听，inbound事件
+ * 包括了读、注册、active等事件
+ * 3. ChannelHandlerContext继承了ChannelOutboundInvoker，表明了它能够outbound事件传播的监听，outbound事件
+ * 主要包括了写事件
+ *
+ *
  * Enables a {@link ChannelHandler} to interact with its {@link ChannelPipeline}
  * and other handlers. Among other things a handler can notify the next {@link ChannelHandler} in the
  * {@link ChannelPipeline} as well as modify the {@link ChannelPipeline} it belongs to dynamically.

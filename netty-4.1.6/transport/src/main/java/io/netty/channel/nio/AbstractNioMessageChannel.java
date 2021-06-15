@@ -113,6 +113,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                     // 事件是如何传播的？head --> ServerBootStrapAcceptor --> tail 依次传播
                     // 这里传播的什么事件?  ChannelRead,  也就是说,会去调用 ServerBootStraptAcceptor的ChannelRead方法
                     // readBuf.get(i)这里获取到的是NioSocketChannel对象
+                    // TODO 是这里把新的NioSocketChannel注册进workerGroup里的，需要注意的是workerGroup注册完之后，只有16个NioEventLoop，但是
+                    // TODO 没有NioSocketChannel
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
                 readBuf.clear();

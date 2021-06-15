@@ -40,6 +40,11 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
+ * channelPipeline的默认实现，它通常在channel实现类创建的时候就跟着一起创建了。
+ *
+ * 在pipeline中，每一个节点都是ChannelHandlerContext对象，而在ChannelHandlerContext对象中存放着
+ * ChannelHandler对象，用于对传播的事件进行业务处理。
+ *
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
  */
@@ -90,13 +95,18 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private boolean registered;
 
     protected DefaultChannelPipeline(Channel channel) {
+        // 给channel赋值channel对象
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
 
+        // 节点对象是AbstractChannelHandlerContext对象，是用于进行业务处理
+        // channelPipeline双向连表的头节点
         tail = new TailContext(this);
+        // channelPipeline双向连表的尾结点
         head = new HeadContext(this);
 
+        // channelPipeline: head -> tail
         head.next = tail;
         tail.prev = head;
     }
@@ -116,6 +126,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return touch ? ReferenceCountUtil.touch(msg, next) : msg;
     }
 
+    /**
+     * 创建一个ChannelHandlerContext对象，这里实际生成的是一个DefaultChannelHandlerContext对象
+     *
+     * @param group         NioEventLoopGroup对象
+     * @param name
+     * @param handler       ChannelHandler对象
+     * @return
+     */
     private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
         return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
     }
@@ -201,8 +219,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         synchronized (this) {
             checkMultiplicity(handler);
 
+            /**
+             * 生成一个新的ChannelHandlerContext对象，这里返回的是DefaultChannelHandlerContext对象
+             */
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            /**
+             * 向pipeline链表中添加一个新的节点
+             */
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
@@ -214,6 +238,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
 
+            /**
+             * 从NioEventLoopGroup中获取到NioEventLoop对象
+             */
             EventExecutor executor = newCtx.executor();
             if (!executor.inEventLoop()) {
                 callHandlerAddedInEventLoop(newCtx, executor);
@@ -370,6 +397,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return addLast(null, handlers);
     }
 
+    /**
+     *
+     * @param executor          NioEventLoopGroup
+     * @param handlers  the handlers to insert last
+     * @return
+     */
     @Override
     public final ChannelPipeline addLast(EventExecutorGroup executor, ChannelHandler... handlers) {
         ObjectUtil.checkNotNull(handlers, "handlers");
@@ -968,11 +1001,23 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     * TODO 这里为啥都调的tail？？？？
+     * @param localAddress
+     * @param promise
+     * @return
+     */
     @Override
     public final ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise) {
         return tail.bind(localAddress, promise);
     }
 
+    /**
+     * TODO 这里为啥都调的tail？？？？
+     * @param remoteAddress
+     * @param promise
+     * @return
+     */
     @Override
     public final ChannelFuture connect(SocketAddress remoteAddress, ChannelPromise promise) {
         return tail.connect(remoteAddress, promise);
@@ -1173,6 +1218,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     /**
+     * 在事件传播过程中，未被业务处理器处理，则在tail节点对msg进行内存释放
+     *
      * Called once a message hit the end of the {@link ChannelPipeline} without been handled by the user
      * in {@link ChannelInboundHandler#channelRead(ChannelHandlerContext, Object)}. This method is responsible
      * to call {@link ReferenceCountUtil#release(Object)} on the given msg at some point.
@@ -1183,6 +1230,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                     "Discarded inbound message {} that reached at the tail of the pipeline. " +
                             "Please check your pipeline configuration.", msg);
         } finally {
+            /**
+             * TODO 疑问，这里的释放逻辑是怎样的呢？
+             *
+             */
             ReferenceCountUtil.release(msg);
         }
     }
@@ -1291,6 +1342,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             onUnhandledInboundException(cause);
         }
 
+        /**
+         * 尾结点的channelRead事件，用于事件在pipeline中仍然未被处理之后，来到Tail节点，调用
+         * onUnhandledInboundMessage释放对象，防止内存泄漏
+         * @param ctx
+         * @param msg
+         */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             onUnhandledInboundMessage(ctx, msg);
@@ -1302,6 +1359,18 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 回顾下，final类有什么特点：
+     * 1. final类不能被继承，不能被覆盖
+     * 2. final类在执行速度方面比一般的类快，为什么呢？答：由于final不能被覆盖，方法也不能被覆盖，所以它的地址引用和装载在编译器就已经完成了，不需要等到运行期间由JVM进行，因而简单高效。
+     *
+     * HeadContext 同时实现了ChannelOutboundHandler和ChannelInboundHandler
+     *
+     * ChannelOutboundHandler和ChannelInboundHandler的区别：
+     * 1. ChannelOutboundHandler主要负责读写事件，通道的连接等
+     * 2. ChannelInboundHandler主要是通道触发事件
+     *
+     */
     final class HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 

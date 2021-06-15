@@ -153,11 +153,21 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         final Entry<ChannelOption<?>, Object>[] currentChildOptions = newOptionsArray(childOptions);
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = newAttributesArray(childAttrs);
 
+        /**
+         * 向pipeline中添加一个channelHandler
+         *
+         * ChannelInitializer对象也是一个ChannelHandler
+         *
+         */
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) {
                 final ChannelPipeline pipeline = ch.pipeline();
                 ChannelHandler handler = config.handler();
+
+                /**
+                 * 将ServerBootStrap在初始化的时候添加的ChannelHandler在此处真正的添加进pipeline中（在ServerTest中ServerBootStrap#childHandler添加的）
+                 */
                 if (handler != null) {
                     pipeline.addLast(handler);
                 }
@@ -193,6 +203,10 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         return this;
     }
 
+    /**
+     * 接收器：用于生产客户端NioSocketChannel
+     *
+     */
     private static class ServerBootstrapAcceptor extends ChannelInboundHandlerAdapter {
 
         private final EventLoopGroup childGroup;

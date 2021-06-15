@@ -63,6 +63,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private String strVal;
 
     /**
+     * 创建一个抽象Channel，NioServerSocketChannel和NioSocketChannel的公共抽象类
      * Creates a new instance.
      *
      * @param parent
@@ -70,8 +71,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      */
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
+        // channel的标识
         id = newId();
+        // channel的unsafe类
+        // NioSocketChannel和NioServerSocketChannel的unsafe对象都一样
         unsafe = newUnsafe();
+        // 新建pipeline
         pipeline = newChannelPipeline();
     }
 
@@ -102,6 +107,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     }
 
     /**
+     * 新建一个ChannelPipeline实例对象
      * Returns a new {@link DefaultChannelPipeline} instance.
      */
     protected DefaultChannelPipeline newChannelPipeline() {
