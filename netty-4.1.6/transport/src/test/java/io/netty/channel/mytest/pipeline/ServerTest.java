@@ -38,6 +38,9 @@ public class ServerTest {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new InBoundHandlerA());
+                            ch.pipeline().addLast(new InBoundHandlerB());
+                            ch.pipeline().addLast(new InBoundHandlerC());
                             ch.pipeline().addLast(new OutBoundHandlerA());
                             ch.pipeline().addLast(new OutBoundHandlerB());
                             ch.pipeline().addLast(new OutBoundHandlerC());

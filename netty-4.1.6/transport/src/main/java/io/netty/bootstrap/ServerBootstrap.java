@@ -149,14 +149,20 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
         // 获取workerGroup
         final EventLoopGroup currentChildGroup = childGroup;
+        /**
+         * ServerBootStrap通过childHandler添加的childHandler，最终会在下面的ServerBootstrapAcceptor中添加进pipeline
+         */
         final ChannelHandler currentChildHandler = childHandler;
         final Entry<ChannelOption<?>, Object>[] currentChildOptions = newOptionsArray(childOptions);
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = newAttributesArray(childAttrs);
 
         /**
          * 向pipeline中添加一个channelHandler
-         *
          * ChannelInitializer对象也是一个ChannelHandler
+         * TODO 这里向pipeline里添加了一个ChannelHandler，会在哪里被触发呢？
+         * 答：这里的channelHandler对象会在DefaultChannelPipeline#callHandlerAddedForAllHandlers方法里执行
+         * 需要注意的是，这里是在ChannelInitializer抽象类的handlerAdded里调用了initChannel的抽象方法，从而调进
+         * 此处的匿名对象类方法里。
          *
          */
         p.addLast(new ChannelInitializer<Channel>() {
@@ -237,7 +243,13 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         }
 
         /**
-         * 给workergroup进行客户端注册工作
+         * 给workerGroup进行客户端注册工作
+         * 当客户端链接进Netty服务器端的时候，调用的channelRead方法。
+         *
+         * ServerBootStrap#channelRead方法主要做了这几件事情：
+         * 1. 将ServerTest里注册的几个ChannelHandler添加到这里的child，也就是NioSocketChannel里
+         * 2. 随后调用workerGroup来注册NioSocketChannel对象
+         * 3. TODO 在随后的NioSocketChannel注册过程中，就会以此调用这里的childHandler
          *
          * @param ctx
          * @param msg
@@ -253,6 +265,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             setAttributes(child, childAttrs);
 
             try {
+                // 注册NioSocketChannel
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

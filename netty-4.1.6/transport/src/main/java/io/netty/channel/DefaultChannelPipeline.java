@@ -947,6 +947,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     * DefaultChannelPipeline#fireChannelRead 默认都是从headContext开始传播事件的
+     *
+     * @param msg
+     * @return
+     */
     @Override
     public final ChannelPipeline fireChannelRead(Object msg) {
         AbstractChannelHandlerContext.invokeChannelRead(head, msg);
@@ -1139,6 +1145,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * TODO 触发pendingHandlerCallbackHead任务，这里的任务是什么呢？在哪里添加了的呢？
+     * 答：这里触发的是在ServerBootStrap#init方法里，添加的匿名ChannelInitializer内部类，最终会触发其
+     * initChannel方法的执行，也就是初始化channel。
+     */
     private void callHandlerAddedForAllHandlers() {
         final PendingHandlerCallback pendingHandlerCallbackHead;
         synchronized (this) {
@@ -1525,8 +1536,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             callHandlerAdded0(ctx);
         }
 
+        /**
+         * 执行ChannelHandler
+         */
         @Override
         void execute() {
+            // 拿到NioEventLoop对象
             EventExecutor executor = ctx.executor();
             if (executor.inEventLoop()) {
                 callHandlerAdded0(ctx);

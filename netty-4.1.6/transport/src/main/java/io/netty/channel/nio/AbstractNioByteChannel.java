@@ -174,6 +174,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
                     allocHandle.incMessagesRead(1);
                     readPending = false;
+
+                    /**
+                     * 触发pipeline中的chanelRead
+                     * TODO 这里会触发ServerBootstrapAcceptor
+                     */
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                 } while (allocHandle.continueReading());
