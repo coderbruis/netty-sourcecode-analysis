@@ -992,6 +992,7 @@
               <logViolationsToConsole>true</logViolationsToConsole>
               <failsOnError>true</failsOnError>
               <failOnViolation>true</failOnViolation>
+              <skip>true</skip>
               <configLocation>io/netty/checkstyle.xml</configLocation>
               <sourceDirectories>
                 <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>

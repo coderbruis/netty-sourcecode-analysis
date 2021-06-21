@@ -71,6 +71,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     // 终止状态
     private static final int ST_TERMINATED = 5;
 
+    private volatile int taskTimes = 0;
+
     private static final Runnable NOOP_TASK = new Runnable() {
         @Override
         public void run() {
@@ -488,8 +490,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
+
         // 从定时任务队列中把任务聚合到普通队列里
         fetchFromScheduledTaskQueue();
+
 
         // 从普通任务队列里拿任务
         Runnable task = pollTask();
@@ -505,6 +509,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
             // 真正执行了任务
             safeExecute(task);
+            System.out.println("任务：" + task);
+            taskTimes++;
 
             runTasks ++;
 
@@ -527,6 +533,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 break;
             }
         }
+
+        System.out.println("当前任务运行次数：" + this.taskTimes);
 
         afterRunningAllTasks();
         this.lastExecutionTime = lastExecutionTime;
@@ -864,7 +872,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void execute(Runnable task, boolean immediate) {
 
-        // 判断当前线程是在NioEventLoop线程内，还是在外部线程               ？？？？这里没搞明白NioEventLoop线程和外部线程的区别
+        // 判断当前线程是在NioEventLoop线程内，还是在外部线程
         boolean inEventLoop = inEventLoop();
         /**
          * 这里添加的Task是一个注册NioServerSocketChannel的任务！
@@ -896,6 +904,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
 
         if (!addTaskWakesUp && immediate) {
+            /**
+             * TODO 没搞懂这里的wakeup什么时候生效？？方法进去了之后都没有真正的对selector进行wakeup
+             */
             wakeup(inEventLoop);
         }
     }

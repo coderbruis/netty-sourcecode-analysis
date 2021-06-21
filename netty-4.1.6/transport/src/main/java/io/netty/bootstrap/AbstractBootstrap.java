@@ -288,6 +288,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return regFuture;
         }
 
+        /**
+         * ？？？？ 为啥有是有regFuture.isDone()为true，有时候又为false呢？？？？
+         */
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             // 此时我们已经知道NioServerSocketChannel已经完成了注册
@@ -297,6 +300,22 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
+
+            System.out.println("regFuture is Not Done!");
+
+            /**
+             * operationComplete的listener什么时候触发？
+             * AbstractChannel#register0
+             *  - AbstractChannel#safeSetSuccess      (这里是出发所有重写了operationComplete的listener)
+             *      - DefaultChannelPromise#trySuccess
+             *          - DefaultPromise#DefaaultPromi
+             *              - DefaultPromise#setValue0
+             *                  - DefaultPromise#notifyListeners
+             *                      - DefaultPromise#safeExecute    (这里向NioEventLoop添加了一个任务)
+             *                          - DefaultPromise#notifyListenersNow
+             *                              - DefaultPromise#notifyListener0
+             *                                  - GenericFutureListener#operationComplete
+             */
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {

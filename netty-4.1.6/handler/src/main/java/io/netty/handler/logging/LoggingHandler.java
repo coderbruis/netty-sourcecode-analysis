@@ -268,6 +268,12 @@ public class LoggingHandler extends ChannelDuplexHandler {
         if (logger.isEnabled(internalLevel)) {
             logger.log(internalLevel, format(ctx, "READ", msg));
         }
+        ctx.channel().eventLoop().execute(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("诶，就是玩儿，我测试一下由客户端出发的添加任务！");
+            }
+        });
         ctx.fireChannelRead(msg);
     }
 

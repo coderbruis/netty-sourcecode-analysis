@@ -22,6 +22,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * 这个类在PooledByteBufAllocator中有用
+ *
+ *
  * Allow to retrieve the {@link EventExecutor} for the calling {@link Thread}.
  */
 public final class ThreadExecutorMap {
@@ -61,6 +64,9 @@ public final class ThreadExecutorMap {
         return new Executor() {
             @Override
             public void execute(final Runnable command) {
+                /**
+                 * 这里的executor是：ThreadPerTaskExecutor对象
+                 */
                 executor.execute(apply(command, eventExecutor));
             }
         };
@@ -76,10 +82,16 @@ public final class ThreadExecutorMap {
         return new Runnable() {
             @Override
             public void run() {
+                /**
+                 * 在FastThreadLocal设置eventExecutor
+                 */
                 setCurrentEventExecutor(eventExecutor);
                 try {
                     command.run();
                 } finally {
+                    /**
+                     * 将FastThreadLocal移除
+                     */
                     setCurrentEventExecutor(null);
                 }
             }

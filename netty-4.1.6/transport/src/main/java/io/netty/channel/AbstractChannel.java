@@ -20,6 +20,7 @@ import io.netty.channel.socket.ChannelOutputShutdownEvent;
 import io.netty.channel.socket.ChannelOutputShutdownException;
 import io.netty.util.DefaultAttributeMap;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.SingleThreadEventExecutor;
 import io.netty.util.internal.ObjectUtil;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.UnstableApi;
@@ -509,6 +510,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
+                /**
+                 * 将promise的result设置为UNCANCELLABLE状态
+                 */
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
@@ -521,6 +525,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 // user may already fire events through the pipeline in the ChannelFutureListener.
                 pipeline.invokeHandlerAddedIfNeeded();
 
+                /**
+                 * 完成channel注册，将promise的result设置为SUCCESS，future就为done了
+                 */
                 safeSetSuccess(promise);
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
@@ -1014,6 +1021,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         }
 
         /**
+         * 标识Promise（Future）为success，即将Promise里的result通过AtomicReferenceFieldUpdater 原子更新器更新为SUCCESS
+         * （在channel完成注册之后，会给promise的result状态设置成UNCANCELLABLE）
+         *
          * Marks the specified {@code promise} as success.  If the {@code promise} is done already, log a message.
          */
         protected final void safeSetSuccess(ChannelPromise promise) {

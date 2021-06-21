@@ -513,6 +513,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                             // 如果没有任务，则select阻塞等待任务
                             // 任务存放在SingleThreadEventLoop
                             if (!hasTasks()) {
+                                // TODO 测试
+                                System.err.println("I'm selecting... waiting for selectKey or tasks!");
                                 strategy = select(curDeadlineNanos);
                             }
                         } finally {

@@ -609,6 +609,13 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
         return setValue0(new CauseHolder(checkNotNull(cause, "cause")));
     }
 
+    /**
+     * 在注册channel的时候，会在AbstractChannel#register0里调用promise.setUncancellable方法，将result设置为UNCANCELLABLE状态，
+     * 表示该future不可取消。
+     *
+     * @param objResult
+     * @return
+     */
     private boolean setValue0(Object objResult) {
         if (RESULT_UPDATER.compareAndSet(this, null, objResult) ||
             RESULT_UPDATER.compareAndSet(this, UNCANCELLABLE, objResult)) {
