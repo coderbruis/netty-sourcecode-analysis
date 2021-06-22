@@ -106,6 +106,7 @@ final class PoolChunkList<T> implements PoolChunkListMetric {
 
         for (PoolChunk<T> cur = head; cur != null; cur = cur.next) {
             if (cur.allocate(buf, reqCapacity, sizeIdx, threadCache)) {
+                // TODO 这一段是啥意思？？？？
                 if (cur.freeBytes <= freeMinThreshold) {
                     remove(cur);
                     nextList.add(cur);

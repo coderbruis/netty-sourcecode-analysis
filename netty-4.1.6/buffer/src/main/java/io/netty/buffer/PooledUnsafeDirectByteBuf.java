@@ -29,6 +29,11 @@ import java.nio.ByteBuffer;
 final class PooledUnsafeDirectByteBuf extends PooledByteBuf<ByteBuffer> {
     private static final ObjectPool<PooledUnsafeDirectByteBuf> RECYCLER = ObjectPool.newPool(
             new ObjectCreator<PooledUnsafeDirectByteBuf>() {
+                /**
+                 * 当RECYCLER中没有ByteBuf时，就新new出一个吐出去
+                 * @param handle
+                 * @return
+                 */
         @Override
         public PooledUnsafeDirectByteBuf newObject(Handle<PooledUnsafeDirectByteBuf> handle) {
             return new PooledUnsafeDirectByteBuf(handle, 0);
@@ -36,6 +41,9 @@ final class PooledUnsafeDirectByteBuf extends PooledByteBuf<ByteBuffer> {
     });
 
     static PooledUnsafeDirectByteBuf newInstance(int maxCapacity) {
+        /**
+         * RECYCLER表示带有回收作用的对象池
+         */
         PooledUnsafeDirectByteBuf buf = RECYCLER.get();
         buf.reuse(maxCapacity);
         return buf;

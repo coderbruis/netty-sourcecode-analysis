@@ -16,6 +16,8 @@
 package io.netty.buffer;
 
 /**
+ * 内存分配管理器接口抽象，负责分配所有的内存
+ *
  * Implementations are responsible to allocate buffers. Implementations of this interface are expected to be
  * thread-safe.
  */
@@ -24,6 +26,9 @@ public interface ByteBufAllocator {
     ByteBufAllocator DEFAULT = ByteBufUtil.DEFAULT_ALLOCATOR;
 
     /**
+     * 负责分配一块内存
+     * 具体分配一块堆内存还是堆外内存，由具体的实现类来决定
+     *
      * Allocate a {@link ByteBuf}. If it is a direct or heap buffer
      * depends on the actual implementation.
      */
@@ -48,11 +53,15 @@ public interface ByteBufAllocator {
     ByteBuf ioBuffer();
 
     /**
+     * 负责分配一块directBuf区域用于IO
+     *
      * Allocate a {@link ByteBuf}, preferably a direct buffer which is suitable for I/O.
      */
     ByteBuf ioBuffer(int initialCapacity);
 
     /**
+     * 负责分配一块directBuf区域用于IO
+     *
      * Allocate a {@link ByteBuf}, preferably a direct buffer which is suitable for I/O.
      */
     ByteBuf ioBuffer(int initialCapacity, int maxCapacity);
@@ -90,6 +99,8 @@ public interface ByteBufAllocator {
     ByteBuf directBuffer(int initialCapacity, int maxCapacity);
 
     /**
+     * 可以将heapBuf和DirectBuf合并到一个地方去使用，既CompositeByteBuf
+     *
      * Allocate a {@link CompositeByteBuf}.
      * If it is a direct or heap buffer depends on the actual implementation.
      */

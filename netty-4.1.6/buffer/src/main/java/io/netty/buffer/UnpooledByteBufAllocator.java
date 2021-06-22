@@ -28,6 +28,9 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
 
     private final UnpooledByteBufAllocatorMetric metric = new UnpooledByteBufAllocatorMetric();
     private final boolean disableLeakDetector;
+    /**
+     * 这里noCleaner是啥？
+     */
     private final boolean noCleaner;
 
     /**
@@ -77,6 +80,13 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
                 && PlatformDependent.hasDirectBufferNoCleanerConstructor();
     }
 
+    /**
+     * Netty的PlatformDependent#hasUnsafe判断系统是否可用Unsafe
+     *
+     * @param initialCapacity
+     * @param maxCapacity
+     * @return
+     */
     @Override
     protected ByteBuf newHeapBuffer(int initialCapacity, int maxCapacity) {
         return PlatformDependent.hasUnsafe() ?
@@ -87,6 +97,12 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
     @Override
     protected ByteBuf newDirectBuffer(int initialCapacity, int maxCapacity) {
         final ByteBuf buf;
+        /**
+         * 判断是否支持unsafe
+         *
+         * 这里noCleaner是啥？k
+         *
+         */
         if (PlatformDependent.hasUnsafe()) {
             buf = noCleaner ? new InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(this, initialCapacity, maxCapacity) :
                     new InstrumentedUnpooledUnsafeDirectByteBuf(this, initialCapacity, maxCapacity);

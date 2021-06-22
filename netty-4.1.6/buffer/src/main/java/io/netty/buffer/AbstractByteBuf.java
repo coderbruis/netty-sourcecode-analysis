@@ -42,6 +42,7 @@ import static io.netty.util.internal.MathUtil.isOutOfBounds;
 import static io.netty.util.internal.ObjectUtil.checkPositiveOrZero;
 
 /**
+ * ByteBuf的骨架底层实现类
  * A skeletal implementation of a buffer.
  */
 public abstract class AbstractByteBuf extends ByteBuf {
@@ -68,9 +69,13 @@ public abstract class AbstractByteBuf extends ByteBuf {
     static final ResourceLeakDetector<ByteBuf> leakDetector =
             ResourceLeakDetectorFactory.instance().newResourceLeakDetector(ByteBuf.class);
 
+    // 读索引
     int readerIndex;
+    // 写索引
     int writerIndex;
+    // 用于重置读操作的索引
     private int markedReaderIndex;
+    // 用于重置写操作的索引
     private int markedWriterIndex;
     private int maxCapacity;
 
@@ -725,10 +730,15 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return bytes.length;
     }
 
+    /**
+     * 从当前读索引开始往后一个字节
+     * @return
+     */
     @Override
     public byte readByte() {
         checkReadableBytes0(1);
         int i = readerIndex;
+        // _getByte是一个抽象方法，方法体由抽象类实现
         byte b = _getByte(i);
         readerIndex = i + 1;
         return b;

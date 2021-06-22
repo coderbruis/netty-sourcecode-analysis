@@ -28,6 +28,10 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
     private final int pageShifts;
     private final int runOffset;
     private final int runSize;
+    /**
+     * 表示内存分配情况
+     * 1表示已经分配；0表示未分配；
+     */
     private final long[] bitmap;
 
     PoolSubpage<T> prev;

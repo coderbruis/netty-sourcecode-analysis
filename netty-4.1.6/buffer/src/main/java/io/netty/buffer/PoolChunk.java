@@ -295,8 +295,12 @@ final class PoolChunk<T> implements PoolChunkMetric {
     boolean allocate(PooledByteBuf<T> buf, int reqCapacity, int sizeIdx, PoolThreadCache cache) {
         final long handle;
         if (sizeIdx <= arena.smallMaxSizeIdx) {
-            // small
+            /**
+             * 计算的一块连续的内存区域？？？
+             * small
+             */
             handle = allocateSubpage(sizeIdx);
+            // handle小于0表示没有分配到内存
             if (handle < 0) {
                 return false;
             }
@@ -305,6 +309,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
             // normal
             // runSize must be multiple of pageSize
             int runSize = arena.sizeIdx2size(sizeIdx);
+            // handle小于0表示没有分配到内存
             handle = allocateRun(runSize);
             if (handle < 0) {
                 return false;
@@ -312,6 +317,9 @@ final class PoolChunk<T> implements PoolChunkMetric {
         }
 
         ByteBuffer nioBuffer = cachedNioBuffers != null? cachedNioBuffers.pollLast() : null;
+        /**
+         * 初始化PoolByteBuf
+         */
         initBuf(buf, nioBuffer, handle, reqCapacity, cache);
         return true;
     }
@@ -322,6 +330,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
 
         synchronized (runsAvail) {
             //find first queue which has at least one big enough run
+
             int queueIdx = runFirstBestFit(pageIdx);
             if (queueIdx == -1) {
                 return -1;

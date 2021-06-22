@@ -30,6 +30,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
 /**
+ * ByteBuf是整个Netty框架最底层的类，是和底层IO打交道的抽象类，主要是负责以下工作：
+ * 1. Netty将底层IO数据读取到ByteBuf里，然后将ByteBuf里的数据传递给应用程序；
+ * 2. 应用程序将ByteBuf里的数据处理完之后，再重新封装为ByteBuf传回底层IO；
+ *
+ *
+ * ByteBuf疑问：
+ * 1. 内存的类别有哪些？
+ * 2. 如何减少多线程内存分配之间的竞争？
+ * 3. 不同大小的内存是如何进行分配的？
+ *
  * A random and sequential accessible sequence of zero or more bytes (octets).
  * This interface provides an abstract view for one or more primitive byte
  * arrays ({@code byte[]}) and {@linkplain ByteBuffer NIO buffers}.
@@ -72,6 +82,10 @@ import java.nio.charset.UnsupportedCharsetException;
  *      |                   |                  |                  |
  *      0      <=      readerIndex   <=   writerIndex    <=    capacity
  * </pre>
+ *
+ * discardable bytes: 是表示的无效区域
+ * readable bytes: 表示可读的区域
+ * writable bytes: 表示可写的区域
  *
  * <h4>Readable bytes (the actual content)</h4>
  *

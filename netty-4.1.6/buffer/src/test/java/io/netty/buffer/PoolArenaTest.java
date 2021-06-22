@@ -27,9 +27,15 @@ import static org.junit.Assume.*;
 
 public class PoolArenaTest {
 
+    /**
+     * 8192 = 2 ^ 13
+     */
     private static final int PAGE_SIZE = 8192;
     private static final int PAGE_SHIFTS = 11;
-    //chunkSize = pageSize * (2 ^ pageShifts)
+    /**
+     * chunkSize = pageSize * (2 ^ pageShifts)
+     * 16777216 = 2 ^ 24
+     */
     private static final int CHUNK_SIZE = 16777216;
 
     @Test

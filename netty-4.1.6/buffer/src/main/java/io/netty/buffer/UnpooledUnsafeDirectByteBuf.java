@@ -29,6 +29,9 @@ import java.nio.ByteBuffer;
  */
 public class UnpooledUnsafeDirectByteBuf extends UnpooledDirectByteBuf {
 
+    /**
+     * 内存地址
+     */
     long memoryAddress;
 
     /**
@@ -66,6 +69,9 @@ public class UnpooledUnsafeDirectByteBuf extends UnpooledDirectByteBuf {
     @Override
     final void setByteBuffer(ByteBuffer buffer, boolean tryFree) {
         super.setByteBuffer(buffer, tryFree);
+        /**
+         * 算出内存地址
+         */
         memoryAddress = PlatformDependent.directBufferAddress(buffer);
     }
 

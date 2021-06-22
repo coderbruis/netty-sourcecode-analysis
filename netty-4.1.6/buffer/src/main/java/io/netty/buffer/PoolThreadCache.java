@@ -35,6 +35,8 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 线程缓存
+ *
  * Acts a Thread cache for allocations. This implementation is moduled after
  * <a href="https://people.freebsd.org/~jasone/jemalloc/bsdcan2006/jemalloc.pdf">jemalloc</a> and the descripted
  * technics of
