@@ -39,6 +39,9 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
 
     private final ByteBufAllocator alloc;
     byte[] array;
+    /**
+     * tmpNioBuf用于Netty的ByteBuf到JDK NIO ByteBuffer的转换
+     */
     private ByteBuffer tmpNioBuf;
 
     /**
@@ -114,6 +117,11 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
         return array.length;
     }
 
+    /**
+     * 扩容（在最大容量范围内，自动扩容）
+     * @param newCapacity
+     * @return
+     */
     @Override
     public ByteBuf capacity(int newCapacity) {
         checkNewCapacity(newCapacity);
@@ -130,9 +138,13 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
             trimIndicesToCapacity(newCapacity);
             bytesToCopy = newCapacity;
         }
+        // 创建新的缓冲区字节数组
         byte[] newArray = allocateArray(newCapacity);
+        // 内存复制，将旧的字节数组复制到新的字节数组中
         System.arraycopy(oldArray, 0, newArray, 0, bytesToCopy);
+        // 替换旧的字节数组
         setArray(newArray);
+        // 释放字节数组
         freeArray(oldArray);
         return this;
     }
@@ -300,6 +312,22 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
         return 1;
     }
 
+    /**
+     * 将ByteBuf转化成ByteBuffer对象
+     *
+     * ByteBuffer#slice 作用：
+     * 1. ByteBuffer类的slice()方法用于创建一个新的字节缓冲区，其内容是给定缓冲区内容的共享子序列。
+     * 2. 新缓冲区的内容将从该缓冲区的当前位置开始。对该缓冲区内容的更改将在新缓冲区中可见，
+     *      反之亦然。这两个缓冲区的位置，限制和标记值将是独立的。
+     * 3. 新缓冲区的位置将为零，其容量和限制将为该缓冲区中剩余的浮点数，并且其标记将不确定。
+     *      当且仅当该缓冲区是直接缓冲区时，新缓冲区才是直接缓冲区；当且仅当该缓冲区是只读缓冲区时，
+     *      新缓冲区才是只读缓冲区。
+     *
+     *
+     * @param index
+     * @param length
+     * @return
+     */
     @Override
     public ByteBuffer nioBuffer(int index, int length) {
         ensureAccessible();

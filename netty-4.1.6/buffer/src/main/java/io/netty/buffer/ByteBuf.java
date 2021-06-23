@@ -517,6 +517,10 @@ public abstract class ByteBuf implements ReferenceCounted, Comparable<ByteBuf> {
     public abstract ByteBuf resetWriterIndex();
 
     /**
+     * discardReadBytes方法回收了已读的区域，防止ByteBuf去动态扩容。但需要指出的是，
+     * 调用discardReadBytes会发生字节数组的内存复制，所以，频繁的调用将会导致性能下降，因此
+     * 如果你确实需要利用性能来换取更多的内存，则可以使用discardReadBytes来释放ByteBuf内存。
+     *
      * Discards the bytes between the 0th index and {@code readerIndex}.
      * It moves the bytes between {@code readerIndex} and {@code writerIndex}
      * to the 0th index, and sets {@code readerIndex} and {@code writerIndex}
@@ -1002,6 +1006,9 @@ public abstract class ByteBuf implements ReferenceCounted, Comparable<ByteBuf> {
     public abstract ByteBuf setBoolean(int index, boolean value);
 
     /**
+     * 随机写
+     * 随机写不像顺序写，顺序写支持动态扩展缓冲区，而随机写则不支持，所以使用随机写时每次都需要校验一下合法性。
+     *
      * Sets the specified byte at the specified absolute {@code index} in this
      * buffer.  The 24 high-order bits of the specified value are ignored.
      * This method does not modify {@code readerIndex} or {@code writerIndex} of

@@ -36,6 +36,9 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
      * (x & y) appears to be surprisingly expensive relative to (x == y). Thus this class uses
      * a fast-path in some places for most common low values when checking for live (even) refcounts,
      * for example: if (rawCnt == 2 || rawCnt == 4 || (rawCnt & 1) == 0) { ...
+     *
+     * 此处注释说明了，如果是偶数，真实的引用值为 refCnt >>> 1 （除2）
+     * 如果是奇数，则真实的引用值为0，表示待销毁。
      */
 
     protected ReferenceCountUpdater() { }
@@ -55,6 +58,14 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
 
     protected abstract long unsafeOffset();
 
+    /**
+     * TODO 这里初始值为啥是2？？
+     *
+     * refCnt是偶数表示当前缓冲区的状态为正常状态（有引用之后是累加2），如果
+     * refCnt是奇数，则表示缓冲区的状态为待销毁状态。缓冲区引用寄数的真实值是refCnt / 2。
+     *
+     * @return
+     */
     public final int initialValue() {
         return 2;
     }
@@ -116,9 +127,20 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
         return retain0(instance, increment, rawIncrement);
     }
 
-    // rawIncrement == increment << 1
+    /**
+     *
+     * rawIncrement == increment << 1  此处表示递增的值 1 << 1 等于 2
+     *
+     * @param instance
+     * @param increment
+     * @param rawIncrement
+     * @return
+     */
     private T retain0(T instance, final int increment, final int rawIncrement) {
+        // CAS 先获取旧的引用值，再增加2
         int oldRef = updater().getAndAdd(instance, rawIncrement);
+        // 如果旧的ref为奇数，则直接抛出异常
+        // oldRef & 1 与运算，结果为奇数则不等于0，为偶数则等于0
         if (oldRef != 2 && oldRef != 4 && (oldRef & 1) != 0) {
             throw new IllegalReferenceCountException(0, increment);
         }
@@ -133,6 +155,7 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
     }
 
     public final boolean release(T instance) {
+        // 通过Unsafe的方式获取引用计数的值
         int rawCnt = nonVolatileRawCnt(instance);
         return rawCnt == 2 ? tryFinalRelease0(instance, 2) || retryRelease0(instance, 1)
                 : nonFinalRelease0(instance, 1, rawCnt, toLiveRealRefCnt(rawCnt, 1));
@@ -160,8 +183,11 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
 
     private boolean retryRelease0(T instance, int decrement) {
         for (;;) {
+            // 获取实例instance中的rawCnt值，并计算出真实的realCnt
             int rawCnt = updater().get(instance), realCnt = toLiveRealRefCnt(rawCnt, decrement);
+            // 如果要减少的引用值和真实的refCnt值相同，也即需要释放缓冲区对象，则调用tryFinalRelease0方法将refCnt的数值修改为1（只要修改为奇数即可）
             if (decrement == realCnt) {
+                // 将refCnt数值修改为1
                 if (tryFinalRelease0(instance, rawCnt)) {
                     return true;
                 }
@@ -173,6 +199,7 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
             } else {
                 throw new IllegalReferenceCountException(realCnt, -decrement);
             }
+            // 调用Thread.yield()方法释放出CPU的执行权，因为修改引用计数的逻辑在整个系统逻辑的优先级并不高，所以让出执行权有利于提高高并发下的系统吞吐量
             Thread.yield(); // this benefits throughput under high contention
         }
     }

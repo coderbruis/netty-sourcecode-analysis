@@ -186,6 +186,11 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
             return emptyBuf;
         }
         validate(initialCapacity, maxCapacity);
+        /**
+         * newDirectBuffer是抽象类，具体的生成DirectBuffer策略有子类提供
+         * 1. 非池方式：直接创建新的ByteBuf
+         * 2. 池里获取：基于内存池的实现直接从缓存中获取ByteBuf而不是创建一个新的对象
+         */
         return newDirectBuffer(initialCapacity, maxCapacity);
     }
 
@@ -249,6 +254,18 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
         return StringUtil.simpleClassName(this) + "(directByDefault: " + directByDefault + ')';
     }
 
+    /**
+     * 动态扩容
+     * 核心算法如下：
+     * 1. 大于扩容阈值时，采用步进算法，每次按4M进行递增
+     * 2. 小于扩容阈值时，采用倍增算法，以64（bit）为基础，进行倍增
+     *
+     * 为什么设置4M的阈值呢？为什么不一值进行倍增下去呢？
+     *
+     * @param minNewCapacity
+     * @param maxCapacity
+     * @return
+     */
     @Override
     public int calculateNewCapacity(int minNewCapacity, int maxCapacity) {
         checkPositiveOrZero(minNewCapacity, "minNewCapacity");
@@ -257,13 +274,17 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
                     "minNewCapacity: %d (expected: not greater than maxCapacity(%d)",
                     minNewCapacity, maxCapacity));
         }
-        final int threshold = CALCULATE_THRESHOLD; // 4 MiB page
+        // 扩容阈值
+        // 4 MiB page
+        final int threshold = CALCULATE_THRESHOLD;
 
         if (minNewCapacity == threshold) {
             return threshold;
         }
 
-        // If over threshold, do not double but just increase by threshold.
+        /**
+         * 如果需扩容大小大于了阈值，则以每次按阈值大小递增，不按double处理。
+         */
         if (minNewCapacity > threshold) {
             int newCapacity = minNewCapacity / threshold * threshold;
             if (newCapacity > maxCapacity - threshold) {
@@ -275,6 +296,9 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
         }
 
         // Not over threshold. Double up to 4 MiB, starting from 64.
+        /**
+         * 如果新扩容内存小于阈值4M，则以64(bit)为计数进行倍增
+         */
         int newCapacity = 64;
         while (newCapacity < minNewCapacity) {
             newCapacity <<= 1;

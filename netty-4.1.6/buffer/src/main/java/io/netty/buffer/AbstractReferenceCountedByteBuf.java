@@ -21,11 +21,31 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import io.netty.util.internal.ReferenceCountUpdater;
 
 /**
+ * 引用计数，用于跟踪对象的分配和销毁，做自动内存回收
+ * UnpooledDirectByteBuf、UnpooledHeapByteBuf等的抽象父类
+ *
+ * 在Netty中，经常使用的ByteBuf的实现类如UnpooledHeapByteBuf、UnpooledDirectByteBuf、pooledHeapByteBuf、pooledDirectByteBuf等都继承自AbstractReferenceCountedByteBuf类。
+ * 这个类的主要功能是对引用进行计数。ByteBuf通过对引用计数，可以知道自己被引用的次数，便于池化的ByteBuf或DirectByteBuf等进行内存回收和释放。
+ * （注意：非池化的ByteBuf每次I/O都会创建一个ByteBuf，可由JVM管理其生命周期，但UnpooledDirectByteBuf最好也手动释放；池化的ByteBuf要手动进行内存回收和释放。）
  * Abstract base class for {@link ByteBuf} implementations that count references.
  */
 public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
+
+    /**
+     * ReferenceCountUpdater原子更新封装类,
+     * 作为抽象类暴露了两个重要的方法：updater()、unsafeOffset()
+     * REFCNT_FIELD_OFFSET表示refCnt字段在AbstractReferenceCountedByteBuf中的内存地址。
+     *
+     * 此处的内存地址是通过JDK的unsafe方法来获取objectFieldOffset的，在ByteBuf的子类：
+     * UnpooledUnsafeDirectByteBuf和PooledUnsafeDirectByteBuf会使用这个内存地址（偏移量）
+     *
+     */
     private static final long REFCNT_FIELD_OFFSET =
             ReferenceCountUpdater.getUnsafeOffset(AbstractReferenceCountedByteBuf.class, "refCnt");
+    /**
+     * 新new出一个AtomicIntegerFieldUpdater对象，用于updater对象获取AtomicIntegerFieldUpdater
+     * AtomicIntegerFieldUpdater通过原子的方式对成员变量进行更新等操作，主要为了实现线程安全，消除锁
+     */
     private static final AtomicIntegerFieldUpdater<AbstractReferenceCountedByteBuf> AIF_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
 
@@ -41,7 +61,10 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
         }
     };
 
-    // Value might not equal "real" reference count, all access should be via the updater
+    /**
+     * Value might not equal "real" reference count, all access should be via the updater
+     * 此处定义的refCnt字段用于追踪对象的引用次数，使用volatile定义为了解决多线程并发访问的可见性问题
+     */
     @SuppressWarnings("unused")
     private volatile int refCnt = updater.initialValue();
 
@@ -75,6 +98,10 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
         updater.resetRefCnt(this);
     }
 
+    /**
+     * AbstractReferenceCountedByteBuf委托updater去对refCnt进行增加计数
+     * @return
+     */
     @Override
     public ByteBuf retain() {
         return updater.retain(this);

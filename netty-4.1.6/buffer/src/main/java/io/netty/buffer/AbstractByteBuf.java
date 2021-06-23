@@ -217,19 +217,40 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return this;
     }
 
+    /**
+     * 重用ByteBuf已读取的缓冲区
+     * @return
+     */
     @Override
     public ByteBuf discardReadBytes() {
+        // 读指针索引为0，没有可重用的缓冲区，直接返回
         if (readerIndex == 0) {
             ensureAccessible();
             return this;
         }
 
+        // 此时表示有读取过的被丢弃缓冲区，也有未读的可读缓冲区
         if (readerIndex != writerIndex) {
+            /**
+             * setBytes进行ByteBuf复制
+             * | ---- | ---- | --- |
+             * | d    | r    |  w  |
+             *      rindex
+             *             windex
+             * 将this表示的ByteBuf重新复制成如下新的ByteBuf：
+             *  | ---- | --- |
+             *  | r    |  w  |
+             *rindex
+             *      windex
+             *
+             */
             setBytes(0, this, readerIndex, writerIndex - readerIndex);
+            // 分别重置writerIndex、readerIndex和markerWriterIndex、markerReaderIndex
             writerIndex -= readerIndex;
             adjustMarkers(readerIndex);
             readerIndex = 0;
         } else {
+            // 此时表明没有可读的字节数组内存了，就不需要进行内存复制，直接将writer和reader的索引置为0
             ensureAccessible();
             adjustMarkers(readerIndex);
             writerIndex = readerIndex = 0;
@@ -274,6 +295,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     // Called after a capacity reduction
+    // 重新设置一下读、写指针索引
     protected final void trimIndicesToCapacity(int newCapacity) {
         if (writerIndex() > newCapacity) {
             setIndex0(Math.min(readerIndex(), newCapacity), newCapacity);
@@ -286,10 +308,15 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return this;
     }
 
+    /**
+     * 可写校验
+     * @param minWritableBytes
+     */
     final void ensureWritable0(int minWritableBytes) {
         final int writerIndex = writerIndex();
         final int targetCapacity = writerIndex + minWritableBytes;
         // using non-short-circuit & to reduce branching - this is a hot path and targetCapacity should rarely overflow
+        // 写指针大于0并且小于最大容量
         if (targetCapacity >= 0 & targetCapacity <= capacity()) {
             ensureAccessible();
             return;
@@ -303,10 +330,12 @@ public abstract class AbstractByteBuf extends ByteBuf {
 
         // Normalize the target capacity to the power of 2.
         final int fastWritable = maxFastWritableBytes();
+        /**
+         * 动态扩容
+         */
         int newCapacity = fastWritable >= minWritableBytes ? writerIndex + fastWritable
                 : alloc().calculateNewCapacity(targetCapacity, maxCapacity);
 
-        // Adjust to the new capacity.
         capacity(newCapacity);
     }
 
@@ -736,6 +765,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
      */
     @Override
     public byte readByte() {
+        // 检测可用空间
         checkReadableBytes0(1);
         int i = readerIndex;
         // _getByte是一个抽象方法，方法体由抽象类实现
@@ -976,6 +1006,12 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return this;
     }
 
+    /**
+     * 丢弃非法的字节数据或跳过指定字节数据读取后面的数据
+     *
+     * @param length
+     * @return
+     */
     @Override
     public ByteBuf skipBytes(int length) {
         checkReadableBytes(length);
@@ -989,6 +1025,14 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return this;
     }
 
+    /**
+     * 不同于NIO的ByteBuffer，每次写内容到缓冲区之前都需要对空间进行校验，为了防止ByteBuffer溢出，这代码就回有非常多的冗余（NIO）。
+     * 而Netty的ByteBuf封装了write，write操作会负责进行剩余可用空间的校验，如果空间不足，ByteBuf会自动进行动态扩展，这样使用者就
+     * 无需关心底层实现细节了。
+     *
+     * @param value
+     * @return
+     */
     @Override
     public ByteBuf writeByte(int value) {
         ensureWritable0(1);
@@ -1430,6 +1474,8 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     /**
+     * 检查索引是否越界以及非法
+     *
      * Throws an {@link IndexOutOfBoundsException} if the current
      * {@linkplain #readableBytes() readable bytes} of this buffer is less
      * than the specified value.
