@@ -35,6 +35,7 @@ public class PoolArenaTest {
     /**
      * chunkSize = pageSize * (2 ^ pageShifts)
      * 16777216 = 2 ^ 24
+     * 16777216b = 16M
      */
     private static final int CHUNK_SIZE = 16777216;
 

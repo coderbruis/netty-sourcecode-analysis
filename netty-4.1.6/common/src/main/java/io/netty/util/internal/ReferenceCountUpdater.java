@@ -71,6 +71,7 @@ public abstract class ReferenceCountUpdater<T extends ReferenceCounted> {
     }
 
     private static int realRefCnt(int rawCnt) {
+        // rawCnt & 1 != 0 为true，即表示rawCnt为true
         return rawCnt != 2 && rawCnt != 4 && (rawCnt & 1) != 0 ? 0 : rawCnt >>> 1;
     }
 

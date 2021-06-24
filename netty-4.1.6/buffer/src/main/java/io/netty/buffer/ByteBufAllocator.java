@@ -18,6 +18,8 @@ package io.netty.buffer;
 /**
  * 内存分配管理器接口抽象，负责分配所有的内存
  *
+ * 在Netty中可以分为两类内存缓冲分配器：1. 基于内存池的字节缓冲区分配器；2. 非内存池的字节缓冲区分配器；
+ *
  * Implementations are responsible to allocate buffers. Implementations of this interface are expected to be
  * thread-safe.
  */
@@ -35,6 +37,7 @@ public interface ByteBufAllocator {
     ByteBuf buffer();
 
     /**
+     * 分配一个初始化容量为initialCapacity的字节缓冲区
      * Allocate a {@link ByteBuf} with the given initial capacity.
      * If it is a direct or heap buffer depends on the actual implementation.
      */
@@ -48,12 +51,13 @@ public interface ByteBufAllocator {
     ByteBuf buffer(int initialCapacity, int maxCapacity);
 
     /**
+     * 分配一个DirectByteBuffer，因为DirectByteBuffer的IO操作性能更高
      * Allocate a {@link ByteBuf}, preferably a direct buffer which is suitable for I/O.
      */
     ByteBuf ioBuffer();
 
     /**
-     * 负责分配一块directBuf区域用于IO
+     * 负责分配一块指定容量initialCapacity的DirectByteBuffer区域用于IO
      *
      * Allocate a {@link ByteBuf}, preferably a direct buffer which is suitable for I/O.
      */

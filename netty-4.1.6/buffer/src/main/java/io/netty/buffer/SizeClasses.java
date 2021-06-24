@@ -18,6 +18,8 @@ package io.netty.buffer;
 import static io.netty.buffer.PoolThreadCache.*;
 
 /**
+ *
+ *
  * SizeClasses requires {@code pageShifts} to be defined prior to inclusion,
  * and it in turn defines:
  * <p>
@@ -96,15 +98,20 @@ abstract class SizeClasses implements SizeClassesMetric {
     private static final byte no = 0, yes = 1;
 
     protected SizeClasses(int pageSize, int pageShifts, int chunkSize, int directMemoryCacheAlignment) {
+        //每一页的大小(默认为8192,即1kB)
         this.pageSize = pageSize;
+        //pageSize的最高位需要左移的次数(默认为13)
         this.pageShifts = pageShifts;
+        //这个chunk的大小(默认为16777216,即16MB)
         this.chunkSize = chunkSize;
         this.directMemoryCacheAlignment = directMemoryCacheAlignment;
 
+        // 这里log2(chunkSize) = 21         没看懂这里啥意思
         int group = log2(chunkSize) + 1 - LOG2_QUANTUM;
 
         //generate size classes
         //[index, log2Group, log2Delta, nDelta, isMultiPageSize, isSubPage, log2DeltaLookup]
+        // 计算出来的sizeClasses长度为84，，为啥不是76呢？？
         sizeClasses = new short[group << LOG2_SIZE_CLASS_GROUP][7];
         nSizes = sizeClasses();
 
@@ -122,6 +129,7 @@ abstract class SizeClasses implements SizeClassesMetric {
     protected final int chunkSize;
     protected final int directMemoryCacheAlignment;
 
+    // SizeClasses二维数组里的index数，76
     final int nSizes;
     int nSubpages;
     int nPSizes;
@@ -130,6 +138,9 @@ abstract class SizeClasses implements SizeClassesMetric {
 
     private int lookupMaxSize;
 
+    /**
+     * 存储这index、size、log2Group等7个数据的数据表格
+     */
     private final short[][] sizeClasses;
 
     private final int[] pageIdx2sizeTab;
@@ -141,6 +152,12 @@ abstract class SizeClasses implements SizeClassesMetric {
     // spacing is 1 << LOG2_QUANTUM, so the size of array is lookupMaxclass >> LOG2_QUANTUM
     private final int[] size2idxTab;
 
+    /**
+     * 此处的计算出sizeClasses表中所有的数据，包括：
+     * index、log2Group、log2Delta、isMultiPageSize、、、、size等内容
+     *
+     * @return
+     */
     private int sizeClasses() {
         int normalMaxSize = -1;
 
@@ -153,14 +170,27 @@ abstract class SizeClasses implements SizeClassesMetric {
 
         //First small group, nDelta start at 0.
         //first size class is 1 << LOG2_QUANTUM
+        /**
+         * 计算第一个group，由于index在(0~3)之间的log2Group是4，而4开始都是6开始递增+1，所以此处单独拿出来，计算index在（0~3）之间的sizeClasses
+         * delta从0开始
+         */
         int nDelta = 0;
         while (nDelta < ndeltaLimit) {
             size = sizeClass(index++, log2Group, log2Delta, nDelta++);
         }
+
+
+        // 4 + 2 = 6，接下来开始计算log2Group = 6的sizeClasses
         log2Group += LOG2_SIZE_CLASS_GROUP;
 
         //All remaining groups, nDelta start at 1.
+        /**
+         * 计算剩余的groups，从6开始递增
+         */
         while (size < chunkSize) {
+            /**
+             * 次数delta从1开始
+             */
             nDelta = 1;
 
             while (nDelta <= ndeltaLimit && size < chunkSize) {
@@ -260,6 +290,12 @@ abstract class SizeClasses implements SizeClassesMetric {
         }
     }
 
+    /**
+     * sizeClasses中，index索引 -> sizeClasses(chunk)中的size内存大小
+     *
+     * @param sizeIdx
+     * @return
+     */
     @Override
     public int sizeIdx2size(int sizeIdx) {
         return sizeIdx2sizeTab[sizeIdx];
@@ -300,11 +336,18 @@ abstract class SizeClasses implements SizeClassesMetric {
         return groupSize + modSize;
     }
 
+    /**
+     *
+     * @param size request size
+     *
+     * @return
+     */
     @Override
     public int size2SizeIdx(int size) {
         if (size == 0) {
             return 0;
         }
+        // 如果大于chunkSize，则返回nSizes代表申请的是Huge内存块
         if (size > chunkSize) {
             return nSizes;
         }
@@ -374,6 +417,7 @@ abstract class SizeClasses implements SizeClassesMetric {
     }
 
     // Round size up to the nearest multiple of alignment.
+    // 四舍五入到最接近的对齐倍数
     private int alignSize(int size) {
         int delta = size & directMemoryCacheAlignment - 1;
         return delta == 0? size : size + directMemoryCacheAlignment - delta;

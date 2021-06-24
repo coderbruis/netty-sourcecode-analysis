@@ -42,6 +42,9 @@ import java.util.NoSuchElementException;
 import static io.netty.util.internal.ObjectUtil.checkNotNull;
 
 /**
+ *
+ * CompositeByteBuf允许将多个ByteBuf的实例组装到- -起，形成一个统一的视图， 有点类似于数据库将多个表的字段组装到一-起统一用视图展示。
+ *
  * A virtual buffer which shows multiple buffers as a single merged buffer.  It is recommended to use
  * {@link ByteBufAllocator#compositeBuffer()} or {@link Unpooled#wrappedBuffer(ByteBuf...)} instead of calling the
  * constructor explicitly.

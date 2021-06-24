@@ -35,6 +35,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ *
+ */
 public class PooledByteBufAllocator extends AbstractByteBufAllocator implements ByteBufAllocatorMetricProvider {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(PooledByteBufAllocator.class);
@@ -63,6 +66,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
     };
 
     static {
+        // PageSize 默认是8192B，即8K
         int defaultPageSize = SystemPropertyUtil.getInt("io.netty.allocator.pageSize", 8192);
         Throwable pageSizeFallbackCause = null;
         try {
@@ -101,6 +105,9 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
          *
          */
         final int defaultMinNumArena = NettyRuntime.availableProcessors() * 2;
+        /**
+         * 默认chunk大小是8192 << 11 = 16 MiB per chunk     16M
+         */
         final int defaultChunkSize = DEFAULT_PAGE_SIZE << DEFAULT_MAX_ORDER;
 
         // 默认HEAP arena分配的线程数
