@@ -509,7 +509,6 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
             // 真正执行了任务
             safeExecute(task);
-            System.out.println("任务：" + task);
             taskTimes++;
 
             runTasks ++;
@@ -533,8 +532,6 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 break;
             }
         }
-
-        System.out.println("当前任务运行次数：" + this.taskTimes);
 
         afterRunningAllTasks();
         this.lastExecutionTime = lastExecutionTime;

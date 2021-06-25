@@ -64,6 +64,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             SystemPropertyUtil.getBoolean("io.netty.noKeySetOptimization", false);
 
     private static final int MIN_PREMATURE_SELECTOR_RETURNS = 3;
+    // selector自动重构阈值
     private static final int SELECTOR_AUTO_REBUILD_THRESHOLD;
 
     /**
@@ -77,6 +78,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     };
 
     // Workaround for JDK NIO bug.
+    // 为解决NIO空轮训bug
     //
     // See:
     // - https://bugs.java.com/view_bug.do?bug_id=6427854
@@ -514,7 +516,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                             // 任务存放在SingleThreadEventLoop
                             if (!hasTasks()) {
                                 // TODO 测试
-                                System.err.println("I'm selecting... waiting for selectKey or tasks!");
+                                System.err.println("[CurrentThread = " + Thread.currentThread().getName() + "]I'm selecting... waiting for selectKey or tasks!");
                                 strategy = select(curDeadlineNanos);
                             }
                         } finally {
@@ -612,7 +614,13 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
-    // returns true if selectCnt should be reset
+    /**
+     * 解决空轮训Bug，重置selectCnt，重新生成selector
+     *
+     * returns true if selectCnt should be reset
+     * @param selectCnt
+     * @return
+     */
     private boolean unexpectedSelectorWakeup(int selectCnt) {
         if (Thread.interrupted()) {
             // Thread was interrupted so reset selected keys and break so we not run into a busy loop.

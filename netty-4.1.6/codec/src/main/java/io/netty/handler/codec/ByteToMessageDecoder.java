@@ -265,14 +265,31 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
      */
     protected void handlerRemoved0(ChannelHandlerContext ctx) throws Exception { }
 
+    /**
+     * ByteToMessageDecoder作为handler，触发channelRead主要做了三件事：
+     * 1. 累加字节流 cumulation = cumulator.cumulate(ctx.alloc(), cumulation, data);
+     * 2. 调用子类的decode()进行解析 callDecode(ctx, cumulation, out);
+     * 3. 将解析完成的ByteBuf往后传递fireChannelRead(ctx, out, size);
+     *
+     *
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // 在这里判断， 是否是 ByteBuf类型的，如果是，进行解码，不是的话，简单的往下传播下去
         if (msg instanceof ByteBuf) {
+            // TODO 这是啥？？
             CodecOutputList out = CodecOutputList.newInstance();
             try {
                 first = cumulation == null;
+                // 进入查看 cumulation是类型  累加器，其实就是往 ByteBuf中 write数据，并且，当ByteBuf 内存不够时进行扩容
+                // 如果为空， 则说明这是第一次进来的数据， 从没累加过
+                // 如果第一次进来数据，则传一个Unpooled.EMPTY_BUFFER给cumulation
                 cumulation = cumulator.cumulate(ctx.alloc(),
                         first ? Unpooled.EMPTY_BUFFER : cumulation, (ByteBuf) msg);
+                // 调用子类的decode()进行解析
                 callDecode(ctx, cumulation, out);
             } catch (DecoderException e) {
                 throw e;
@@ -293,6 +310,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
 
                     int size = out.size();
                     firedChannelRead |= out.insertSinceRecycled();
+                    // 调用 fireChannelRead,向后传播channelRead事件,调用pipeline后续的handler
                     fireChannelRead(ctx, out, size);
                 } finally {
                     out.recycle();
@@ -416,6 +434,8 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
     }
 
     /**
+     * 调用解码
+     *
      * Called once data should be decoded from the given {@link ByteBuf}. This method will call
      * {@link #decode(ChannelHandlerContext, ByteBuf, List)} as long as decoding should take place.
      *
@@ -428,7 +448,9 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             while (in.isReadable()) {
                 int outSize = out.size();
 
+                // 如果盛放解析完成后的数据的 out集合中有数据
                 if (outSize > 0) {
+                    // 调用channelRead，并向pipeline剩余handler传播事件
                     fireChannelRead(ctx, out, outSize);
                     out.clear();
 
@@ -462,6 +484,10 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                     }
                 }
 
+                /**
+                 * 来到这里就说明,已经解析出数据了 , 解析出数据了  就意味着in中的readIndex被子类改动了, 即 oldInputLength != in.readableBytes()
+                 * 如下现在还相等, 肯定是出问题了
+                 */
                 if (oldInputLength == in.readableBytes()) {
                     throw new DecoderException(
                             StringUtil.simpleClassName(getClass()) +
@@ -505,6 +531,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             throws Exception {
         decodeState = STATE_CALLING_CHILD_DECODE;
         try {
+            // 抽象方法，实现逻辑由子类提供
             decode(ctx, in, out);
         } finally {
             boolean removePending = decodeState == STATE_HANDLER_REMOVED_PENDING;
@@ -532,6 +559,13 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
         }
     }
 
+    /**
+     * 扩容
+     * @param alloc                 内存分配器
+     * @param oldCumulation         旧的ByteBuf
+     * @param in
+     * @return
+     */
     static ByteBuf expandCumulation(ByteBufAllocator alloc, ByteBuf oldCumulation, ByteBuf in) {
         int oldBytes = oldCumulation.readableBytes();
         int newBytes = in.readableBytes();

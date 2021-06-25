@@ -301,8 +301,6 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // Registration future is almost always fulfilled already, but just in case it's not.
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
 
-            System.out.println("regFuture is Not Done!");
-
             /**
              * operationComplete的listener什么时候触发？
              * AbstractChannel#register0
