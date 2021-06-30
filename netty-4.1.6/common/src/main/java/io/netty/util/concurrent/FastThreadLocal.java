@@ -23,6 +23,8 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
+ * FastThreadLocal比ThreadLocal快的原因在于，FastThreadLocal使用的是数组避免hash冲突，而FastThreadLocal使用的线性探测方式解决冲突，性能低。
+ *
  * A special variant of {@link ThreadLocal} that yields higher access performance when accessed from a
  * {@link FastThreadLocalThread}.
  * <p>
@@ -133,12 +135,15 @@ public class FastThreadLocal<V> {
      */
     @SuppressWarnings("unchecked")
     public final V get() {
+        // 获取InternalThreadLocalMap对象
         InternalThreadLocalMap threadLocalMap = InternalThreadLocalMap.get();
+        // 通过index索引来获取map中的对象
         Object v = threadLocalMap.indexedVariable(index);
         if (v != InternalThreadLocalMap.UNSET) {
             return (V) v;
         }
 
+        // 初始化一个（线程首次触发的时候会调用）
         return initialize(threadLocalMap);
     }
 

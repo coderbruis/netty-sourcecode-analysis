@@ -40,8 +40,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(InternalThreadLocalMap.class);
+
+    /**
+     * 个体非FastThreadLocal使用
+     * ThreadLocal维护的一个变量
+     */
     private static final ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap =
             new ThreadLocal<InternalThreadLocalMap>();
+    /**
+     * 控制FastThreadLocal能够独立的分布在JVM内存中，由原子变量nextIndex来定义索引
+     */
     private static final AtomicInteger nextIndex = new AtomicInteger();
 
     private static final int DEFAULT_ARRAY_LIST_INITIAL_CAPACITY = 8;
@@ -52,7 +60,9 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
 
     public static final Object UNSET = new Object();
 
-    /** Used by {@link FastThreadLocal} */
+    /**
+     * FastThreadLocal使用
+     */
     private Object[] indexedVariables;
 
     // Core thread-locals
@@ -97,13 +107,16 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     public static InternalThreadLocalMap get() {
         Thread thread = Thread.currentThread();
         if (thread instanceof FastThreadLocalThread) {
+            // 通过FastThreadLocalMap来获取
             return fastGet((FastThreadLocalThread) thread);
         } else {
+            // 通过ThreadLocal来获取（由于ThreadLocal相比于FastThreadLocal来说是慢的，所以这里是slowGet）
             return slowGet();
         }
     }
 
     private static InternalThreadLocalMap fastGet(FastThreadLocalThread thread) {
+        // FastThreadLocalThread本身就维护了一个ThreadLocalMap
         InternalThreadLocalMap threadLocalMap = thread.threadLocalMap();
         if (threadLocalMap == null) {
             thread.setThreadLocalMap(threadLocalMap = new InternalThreadLocalMap());
@@ -114,6 +127,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     private static InternalThreadLocalMap slowGet() {
         InternalThreadLocalMap ret = slowThreadLocalMap.get();
         if (ret == null) {
+            // 如果ThreadLocal中没有InternalThreadLocalMap对象，则直接new一个出来并存到ThreadLocal中，随后返回
             ret = new InternalThreadLocalMap();
             slowThreadLocalMap.set(ret);
         }

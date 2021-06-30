@@ -108,6 +108,8 @@ public final class ChannelOutboundBuffer {
     }
 
     /**
+     * 插入写队列，将msg插入到outboundBuffer，这个对象是ChannelOutBoundBuf类型的，它的作用就是起到一个容器的作用。
+     *
      * Add given message to this {@link ChannelOutboundBuffer}. The given {@link ChannelPromise} will be notified once
      * the message was written.
      */
@@ -173,6 +175,8 @@ public final class ChannelOutboundBuffer {
         }
 
         long newWriteBufferSize = TOTAL_PENDING_SIZE_UPDATER.addAndGet(this, size);
+        // 超过了配置的高水位数
+        // 之类设置的高水位有什么作用呢？
         if (newWriteBufferSize > channel.config().getWriteBufferHighWaterMark()) {
             setUnwritable(invokeLater);
         }

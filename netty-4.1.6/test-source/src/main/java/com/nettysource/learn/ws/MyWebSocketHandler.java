@@ -99,10 +99,10 @@ public class MyWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         //判断是否是二进制消息，如果是二进制消息，抛出异常
-        if(!(frame instanceof TextWebSocketFrame) ){
-            System.out.println("目前我们不支持二进制消息");
-            throw new RuntimeException("【"+this.getClass().getName()+"】不支持消息");
-        }
+//        if(!(frame instanceof TextWebSocketFrame) ){
+//            System.out.println("目前我们不支持二进制消息");
+//            throw new RuntimeException("【"+this.getClass().getName()+"】不支持消息");
+//        }
         //返回应答消息
         //获取客户端向服务端发送的消息
         String request = ((TextWebSocketFrame) frame).text();
@@ -113,6 +113,8 @@ public class MyWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 + request);
         //群发，服务端向每个连接上来的客户端群发消息
         NettyConfig.group.writeAndFlush(tws);
+        User user = new User(19, "zhangsan");
+        NettyConfig.group.writeAndFlush(new TextWebSocketFrame(user.getName()));
     }
 
 

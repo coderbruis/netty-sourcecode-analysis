@@ -18,5 +18,7 @@ public class MyWebSocketChannelHandler extends ChannelInitializer {
         ch.pipeline().addLast("aggregator", new HttpObjectAggregator(65536));
         ch.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
         ch.pipeline().addLast("handler", new MyWebSocketHandler());
+        ch.pipeline().addLast(new Encoder());
+        ch.pipeline().addLast(new BizHandler());
     }
 }

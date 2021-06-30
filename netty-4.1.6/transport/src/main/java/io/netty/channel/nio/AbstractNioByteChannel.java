@@ -290,6 +290,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
         incompleteWrite(writeSpinCount < 0);
     }
 
+    /**
+     * msg一般都是ByteBuf类型，Netty最终都要将ByteBuf转化成ByteBuffer之后，再写到JDK的通道channel里
+     * @param msg
+     * @return
+     */
     @Override
     protected final Object filterOutboundMessage(Object msg) {
         if (msg instanceof ByteBuf) {

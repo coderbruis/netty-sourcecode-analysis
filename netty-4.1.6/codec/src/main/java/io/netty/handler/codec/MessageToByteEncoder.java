@@ -95,6 +95,15 @@ public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdap
         return matcher.match(msg);
     }
 
+    /**
+     * 触发pipeline的write方法，如果是MessageToByteEncoder规定的泛型，则acceptOutboundMessage为true，
+     * 对需要传输的msg进行encode编码，并将编码后的二进制内容write到ByteBuf中
+     *
+     * @param ctx
+     * @param msg
+     * @param promise
+     * @throws Exception
+     */
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf buf = null;
@@ -109,14 +118,19 @@ public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdap
                     ReferenceCountUtil.release(cast);
                 }
 
+                // buf可读
                 if (buf.isReadable()) {
+                    // 存放二进制消息的ByteBuf write继续往下传播
                     ctx.write(buf, promise);
                 } else {
+                    // 释放ByteBuf中的内容
                     buf.release();
+                    // 往下传播一个空ByteBuf
                     ctx.write(Unpooled.EMPTY_BUFFER, promise);
                 }
                 buf = null;
             } else {
+                // 将未处理的msg继续往下write传播
                 ctx.write(msg, promise);
             }
         } catch (EncoderException e) {

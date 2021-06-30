@@ -537,6 +537,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     continue;
                 }
 
+                System.err.println("[CurrentThread = " + Thread.currentThread().getName() + "] select() 调用完了，此时已经有事件进来了？");
                 // 选择次数+1
                 selectCnt++;
                 cancelledKeys = 0;
