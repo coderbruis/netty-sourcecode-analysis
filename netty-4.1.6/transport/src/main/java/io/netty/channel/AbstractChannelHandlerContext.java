@@ -68,27 +68,37 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     volatile AbstractChannelHandlerContext next;
     volatile AbstractChannelHandlerContext prev;
 
+    /**
+     * 这里的FieldUpdater通过原子性来控制了handlerState
+     */
     private static final AtomicIntegerFieldUpdater<AbstractChannelHandlerContext> HANDLER_STATE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(AbstractChannelHandlerContext.class, "handlerState");
 
     /**
+     * 正在调用handlerAdded
      * {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} is about to be called.
      */
     private static final int ADD_PENDING = 1;
     /**
+     * 调用handlerAdded完成
      * {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} was called.
      */
     private static final int ADD_COMPLETE = 2;
     /**
+     * 调用handlerRemove方法
      * {@link ChannelHandler#handlerRemoved(ChannelHandlerContext)} was called.
      */
     private static final int REMOVE_COMPLETE = 3;
     /**
+     * 初始状态，handlerAdded和handlerRemoved都未调用
      * Neither {@link ChannelHandler#handlerAdded(ChannelHandlerContext)}
      * nor {@link ChannelHandler#handlerRemoved(ChannelHandlerContext)} was called.
      */
     private static final int INIT = 0;
 
+    /**
+     * ChannelHandler对象中保存的pipeline
+     */
     private final DefaultChannelPipeline pipeline;
     private final String name;
     private final boolean ordered;

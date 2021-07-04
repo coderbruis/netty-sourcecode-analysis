@@ -186,6 +186,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // ChannelHandler.handlerAdded(...) once the channel is registered.
             if (!registered) {
                 newCtx.setAddPending();
+                // 触发handlerAdded方法，并开始传播handlerAdded事件，此处最终会调用ChannelInitializer#handlerAdded方法，并最终调用到initChannel方法
                 callHandlerCallbackLater(newCtx, true);
                 return this;
             }
@@ -234,6 +235,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // ChannelHandler.handlerAdded(...) once the channel is registered.
             if (!registered) {
                 newCtx.setAddPending();
+                // 触发handlerAdded方法，并开始传播handlerAdded事件，此处最终会调用ChannelInitializer#handlerAdded方法，并最终调用到initChannel方法
                 callHandlerCallbackLater(newCtx, true);
                 return this;
             }
