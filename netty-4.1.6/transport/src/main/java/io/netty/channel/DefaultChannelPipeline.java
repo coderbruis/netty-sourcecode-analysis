@@ -48,7 +48,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
  */
-public class DefaultChannelPipeline implements ChannelPipeline {
+public class
+DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
 
