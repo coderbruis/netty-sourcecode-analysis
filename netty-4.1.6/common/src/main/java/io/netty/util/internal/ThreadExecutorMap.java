@@ -55,17 +55,20 @@ public final class ThreadExecutorMap {
         ObjectUtil.checkNotNull(executor, "executor");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
         /**
-         * 生成的一个ThreadExecutorMap的匿名内部的Executor类
-         *
-         * TODO 这里的command线程是哪里传进来的呢？？？
-         * 这里是SingleThreadEventExecutor传过来的一个匿名Runnable内部类
+         * 1. 生成的一个ThreadExecutorMap的匿名内部的Executor类
+         * 2. 这里是SingleThreadEventExecutor传过来的一个匿名Runnable内部类
          *
          */
         return new Executor() {
             @Override
             public void execute(final Runnable command) {
                 /**
-                 * 这里的executor是：ThreadPerTaskExecutor对象
+                 * 1. 这里的executor是：ThreadPerTaskExecutor对象，是在MultithreadEventExecutorGroup里生成的
+                 * 2. apply(command, eventExecutor)生成的是一个Runnable，而经过executor.execute调用之后，封装成了一个
+                 *  FastThreadLocalRunnable对象，并存放在了FastThreadLocalThread中！！
+                 * 3. 随后调用apply生成的Runnable的start()方法
+                 *
+                 * 主要是为了让FastThreadLocalThread包装一层
                  */
                 executor.execute(apply(command, eventExecutor));
             }

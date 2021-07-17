@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public final class ThreadPerTaskExecutor implements Executor {
 
-    // 线程工厂
+    // 线程工厂——>用于生产FastThreadLocalThread
     private final ThreadFactory threadFactory;
 
     public ThreadPerTaskExecutor(ThreadFactory threadFactory) {

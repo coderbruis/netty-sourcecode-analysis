@@ -33,6 +33,11 @@ final class FastThreadLocalRunnable implements Runnable {
         }
     }
 
+    /**
+     * 包装出一个FastThreadLocalRunnable
+     * @param runnable
+     * @return
+     */
     static Runnable wrap(Runnable runnable) {
         return runnable instanceof FastThreadLocalRunnable ? runnable : new FastThreadLocalRunnable(runnable);
     }

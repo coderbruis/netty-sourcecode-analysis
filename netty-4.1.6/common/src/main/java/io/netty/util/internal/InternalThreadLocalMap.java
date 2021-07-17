@@ -42,8 +42,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(InternalThreadLocalMap.class);
 
     /**
-     * 个体非FastThreadLocal使用
-     * ThreadLocal维护的一个变量
+     * ThreadLocal维护着InternalThreadLocalMap对象，确保每个线程都能拿到InternalThreadLocalMap
      */
     private static final ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap =
             new ThreadLocal<InternalThreadLocalMap>();
@@ -61,7 +60,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     public static final Object UNSET = new Object();
 
     /**
-     * FastThreadLocal使用
+     * 用来存储FastThreadLocal要存的数据
      */
     private Object[] indexedVariables;
 
@@ -125,6 +124,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     }
 
     private static InternalThreadLocalMap slowGet() {
+        // 通过JDK的ThreadLocal去拿InternalThreadLocalMap对象
         InternalThreadLocalMap ret = slowThreadLocalMap.get();
         if (ret == null) {
             // 如果ThreadLocal中没有InternalThreadLocalMap对象，则直接new一个出来并存到ThreadLocal中，随后返回
@@ -342,6 +342,11 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
         }
     }
 
+    /**
+     * 扩容
+     * @param index
+     * @param value
+     */
     private void expandIndexedVariableTableAndSet(int index, Object value) {
         Object[] oldArray = indexedVariables;
         final int oldCapacity = oldArray.length;

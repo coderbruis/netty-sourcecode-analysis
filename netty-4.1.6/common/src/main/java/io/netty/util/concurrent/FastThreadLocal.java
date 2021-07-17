@@ -124,6 +124,9 @@ public class FastThreadLocal<V> {
         variablesToRemove.remove(variable);
     }
 
+    /**
+     * index没有被static修饰，说明每个FastThreadLocal对象都有一个自己的index成员属性
+     */
     private final int index;
 
     public FastThreadLocal() {

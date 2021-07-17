@@ -124,6 +124,8 @@ public class DefaultThreadFactory implements ThreadFactory {
     /**
      * 返回一个线程，一个FastThreadLocalThread线程，在ThreadLocal基础上优化过的
      *
+     * FastThreadLocalThread -> FastThreadLocalRunnable
+     *
      * @param r             线程
      * @param name          线程名称
      * @return
