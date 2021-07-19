@@ -479,11 +479,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             } else {
                 try {
                     /**
-                     * todo 这里new Runnable() {} 匿名内部列是啥呢？
                      * 其实就是当前所在AbstractChannel内部类AbstractUnsafe，
-                     * 即让AbstractUnsafe继承了runnable，然后开启AbstractUnsafe线程，
-                     * 目的是运行其register0方法。
-                     * todo 异步启动一个AbstractUnsafe线程去注册
+                     * 即让AbstractUnsafe继承了runnable，然后开启AbstractUnsafe线程，目的是运行其register0方法。
+                     *
+                     * eventLoop#execute启动一个NioEventLoop，来执行register0，完成Channel的注册
+                     *
                      */
                     eventLoop.execute(new Runnable() {
                         @Override

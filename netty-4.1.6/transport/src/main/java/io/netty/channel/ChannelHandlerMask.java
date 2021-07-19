@@ -32,13 +32,17 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * ChannelHandler掩码类，此类是对ChannelPipeline进行了优化，具体是怎么个优化法呢？？
+ */
 final class ChannelHandlerMask {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(ChannelHandlerMask.class);
 
     // Using to mask which methods must be called for a ChannelHandler.
-    static final int MASK_EXCEPTION_CAUGHT = 1;
-    static final int MASK_CHANNEL_REGISTERED = 1 << 1;
-    static final int MASK_CHANNEL_UNREGISTERED = 1 << 2;
+    // 下面的掩码位用于掩饰ChannelHandler的方法
+    static final int MASK_EXCEPTION_CAUGHT = 1; // 1 << 0                     1
+    static final int MASK_CHANNEL_REGISTERED = 1 << 1; //                     10
+    static final int MASK_CHANNEL_UNREGISTERED = 1 << 2;//                    100   下面的以此类推
     static final int MASK_CHANNEL_ACTIVE = 1 << 3;
     static final int MASK_CHANNEL_INACTIVE = 1 << 4;
     static final int MASK_CHANNEL_READ = 1 << 5;
@@ -54,12 +58,18 @@ final class ChannelHandlerMask {
     static final int MASK_WRITE = 1 << 15;
     static final int MASK_FLUSH = 1 << 16;
 
+    // 仅入栈方法的掩码
     static final int MASK_ONLY_INBOUND =  MASK_CHANNEL_REGISTERED |
             MASK_CHANNEL_UNREGISTERED | MASK_CHANNEL_ACTIVE | MASK_CHANNEL_INACTIVE | MASK_CHANNEL_READ |
             MASK_CHANNEL_READ_COMPLETE | MASK_USER_EVENT_TRIGGERED | MASK_CHANNEL_WRITABILITY_CHANGED;
+    // 所有入栈方法的掩码
     private static final int MASK_ALL_INBOUND = MASK_EXCEPTION_CAUGHT | MASK_ONLY_INBOUND;
+
+    // 仅出栈方法的掩码
     static final int MASK_ONLY_OUTBOUND =  MASK_BIND | MASK_CONNECT | MASK_DISCONNECT |
             MASK_CLOSE | MASK_DEREGISTER | MASK_READ | MASK_WRITE | MASK_FLUSH;
+
+    // 所有出栈方法的掩码
     private static final int MASK_ALL_OUTBOUND = MASK_EXCEPTION_CAUGHT | MASK_ONLY_OUTBOUND;
 
     private static final FastThreadLocal<Map<Class<? extends ChannelHandler>, Integer>> MASKS =

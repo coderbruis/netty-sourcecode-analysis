@@ -913,6 +913,15 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return ctx;
     }
 
+    /**
+     * 用于判断是否需要跳过此Context
+     *
+     * @param ctx
+     * @param currentExecutor
+     * @param mask
+     * @param onlyMask
+     * @return
+     */
     private static boolean skipContext(
             AbstractChannelHandlerContext ctx, EventExecutor currentExecutor, int mask, int onlyMask) {
         // Ensure we correctly handle MASK_EXCEPTION_CAUGHT which is not included in the MASK_EXCEPTION_CAUGHT
