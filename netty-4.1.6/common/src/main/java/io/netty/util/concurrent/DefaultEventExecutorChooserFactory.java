@@ -37,11 +37,10 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
      */
     @Override
     public EventExecutorChooser newChooser(EventExecutor[] executors) {
-        // 2的幂方，则使用优化过后的方法
         if (isPowerOfTwo(executors.length)) {
-            return new PowerOfTwoEventExecutorChooser(executors);
+            return new PowerOfTwoEventExecutorChooser(executors);       // 2的幂方，则使用优化过后的方法
         } else {
-            return new GenericEventExecutorChooser(executors);
+            return new GenericEventExecutorChooser(executors);      // 原生chooser方法
         }
     }
 
