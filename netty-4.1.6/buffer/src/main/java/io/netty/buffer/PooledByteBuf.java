@@ -153,9 +153,9 @@ abstract class PooledByteBuf<T> extends AbstractReferenceCountedByteBuf {
     }
 
     protected final ByteBuffer internalNioBuffer() {
-        ByteBuffer tmpNioBuf = this.tmpNioBuf;
+        ByteBuffer tmpNioBuf = this.tmpNioBuf;      // 获取零时NioBuffer对象
         if (tmpNioBuf == null) {
-            this.tmpNioBuf = tmpNioBuf = newInternalNioBuffer(memory);
+            this.tmpNioBuf = tmpNioBuf = newInternalNioBuffer(memory);          // 三连等，从右往左开始赋值
         } else {
             tmpNioBuf.clear();
         }
@@ -186,9 +186,10 @@ abstract class PooledByteBuf<T> extends AbstractReferenceCountedByteBuf {
     }
 
     final ByteBuffer _internalNioBuffer(int index, int length, boolean duplicate) {
-        index = idx(index);
-        ByteBuffer buffer = duplicate ? newInternalNioBuffer(memory) : internalNioBuffer();
-        buffer.limit(index + length).position(index);
+        index = idx(index);         // 根据readIndex获取偏移量offset
+        // duplicate默认为true
+        ByteBuffer buffer = duplicate ? newInternalNioBuffer(memory) : internalNioBuffer();     // 从memory中复制一份内存对象，两者共享缓冲区，但其位置指针独立维护
+        buffer.limit(index + length).position(index);       // 设置新的ByteBuffer位置及其最大长度
         return buffer;
     }
 

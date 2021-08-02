@@ -274,34 +274,39 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
                     "minNewCapacity: %d (expected: not greater than maxCapacity(%d)",
                     minNewCapacity, maxCapacity));
         }
-        // 扩容阈值
-        // 4 MiB page
-        final int threshold = CALCULATE_THRESHOLD;
 
-        if (minNewCapacity == threshold) {
+        final int threshold = CALCULATE_THRESHOLD;      // 扩容阈值 4 MiB page
+
+        if (minNewCapacity == threshold) {          // 如果新写内存和扩容阈值一致，则直接返回
             return threshold;
         }
 
-        /**
-         * 如果需扩容大小大于了阈值，则以每次按阈值大小递增，不按double处理。
-         */
-        if (minNewCapacity > threshold) {
-            int newCapacity = minNewCapacity / threshold * threshold;
-            if (newCapacity > maxCapacity - threshold) {
+        if (minNewCapacity > threshold) {           // 如果新扩容内存大小大于内存阈值
+            // 思考？这里为什么要：minNewCapacity / threshold * threshold 呢？
+            // 答：首先在Java中, a / b 会拿到最小的一个整数（向下取整），最终minNewCapacity / threshold * threshold就是获取里minNewCapacity最近的4MB的整数倍值，并且这里newCapacity是小于minNewCapacity的
+            int newCapacity = minNewCapacity / threshold * threshold;       // 这里newCapacity是离minNewCapacity最小的4MB倍数被的内存大小（小于minNewCapacity）
+
+            /**
+             * 此处新的容量值不会倍增，因为4MB以上内存比较大
+             * 如果继续倍增，则可能带来额外的内存浪费，因此只能在4MB基础上进行增加，并判断是否大于maxCapacity
+             * 同下：newCapacity + threshold > maxCapacity
+             */
+            if (newCapacity > maxCapacity - threshold) {    // 尝试+4MB是否大于最大容量
                 newCapacity = maxCapacity;
             } else {
-                newCapacity += threshold;
+                newCapacity += threshold;       // +4MB后仍小于maxCapacity
             }
             return newCapacity;
         }
 
         // Not over threshold. Double up to 4 MiB, starting from 64.
         /**
-         * 如果新扩容内存小于阈值4M，则以64(bit)为计数进行倍增
+         * 当minNewCapacity < threshold时，以64位基础进行倍增
+         * 64 -> 128 -> 256 ... 直到满足最小容量要求，并以此容量值作为新容量值
          */
         int newCapacity = 64;
         while (newCapacity < minNewCapacity) {
-            newCapacity <<= 1;
+            newCapacity <<= 1;          // 左移倍增
         }
 
         return Math.min(newCapacity, maxCapacity);

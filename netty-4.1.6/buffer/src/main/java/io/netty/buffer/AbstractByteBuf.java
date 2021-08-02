@@ -309,19 +309,18 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     /**
-     * 可写校验
+     * 可写校验，适当的时候进行扩容
      * @param minWritableBytes
      */
     final void ensureWritable0(int minWritableBytes) {
-        final int writerIndex = writerIndex();
+        final int writerIndex = writerIndex();          // 获取写索引
         final int targetCapacity = writerIndex + minWritableBytes;
         // using non-short-circuit & to reduce branching - this is a hot path and targetCapacity should rarely overflow
-        // 写指针大于0并且小于最大容量
-        if (targetCapacity >= 0 & targetCapacity <= capacity()) {
+        if (targetCapacity >= 0 & targetCapacity <= capacity()) {       // 新写指针大于0并且小于最大容量
             ensureAccessible();
             return;
         }
-        if (checkBounds && (targetCapacity < 0 || targetCapacity > maxCapacity)) {
+        if (checkBounds && (targetCapacity < 0 || targetCapacity > maxCapacity)) {      // 边界检查
             ensureAccessible();
             throw new IndexOutOfBoundsException(String.format(
                     "writerIndex(%d) + minWritableBytes(%d) exceeds maxCapacity(%d): %s",
@@ -329,7 +328,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
         }
 
         // Normalize the target capacity to the power of 2.
-        final int fastWritable = maxFastWritableBytes();
+        final int fastWritable = maxFastWritableBytes();        // 对于2的整数次幂的内存，方便与AbstractByteBuf进行内存分配，因此扩容大小必须是2的整数次幂
         /**
          * 动态扩容
          */
@@ -930,10 +929,18 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return slice;
     }
 
+    /**
+     * 读操作
+     * @param dst      读字节数组
+     * @param dstIndex the first index of the destination
+     * @param length   the number of bytes to transfer
+     *
+     * @return
+     */
     @Override
     public ByteBuf readBytes(byte[] dst, int dstIndex, int length) {
         checkReadableBytes(length);
-        getBytes(readerIndex, dst, dstIndex, length);
+        getBytes(readerIndex, dst, dstIndex, length);           // getBytes具体逻辑由子类来实现
         readerIndex += length;
         return this;
     }
@@ -1152,6 +1159,14 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return this;
     }
 
+    /**
+     * 写方法
+     * @param src                                           ByteBuf
+     * @param srcIndex the first index of the source
+     * @param length   the number of bytes to transfer
+     *
+     * @return
+     */
     @Override
     public ByteBuf writeBytes(ByteBuf src, int srcIndex, int length) {
         ensureWritable(length);
@@ -1493,8 +1508,8 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     private void checkReadableBytes0(int minimumReadableBytes) {
-        ensureAccessible();
-        if (checkBounds && readerIndex > writerIndex - minimumReadableBytes) {
+        ensureAccessible();     // 判断引用计数器是否为0，为0抛异常表示无读内存
+        if (checkBounds && readerIndex > writerIndex - minimumReadableBytes) {  // 判断读指针索引是否大于了写指针-可读最小指针索引
             throw new IndexOutOfBoundsException(String.format(
                     "readerIndex(%d) + length(%d) exceeds writerIndex(%d): %s",
                     readerIndex, minimumReadableBytes, writerIndex, this));
@@ -1502,6 +1517,10 @@ public abstract class AbstractByteBuf extends ByteBuf {
     }
 
     /**
+     * checkAccessible开启检查，
+     * 并且isAccessible勇于判断refCnt引用计数是否为0，如果为0则表示对象被销毁了，则
+     * 无法继续进行写操作，抛出IllegalReferenceCountException异常
+     *
      * Should be called by every method that tries to access the buffers content to check
      * if the buffer was released before.
      */

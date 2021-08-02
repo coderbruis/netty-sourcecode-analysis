@@ -137,8 +137,8 @@ final class PooledDirectByteBuf extends PooledByteBuf<ByteBuffer> {
 
     @Override
     public ByteBuf getBytes(int index, byte[] dst, int dstIndex, int length) {
-        checkDstIndex(index, length, dstIndex, dst.length);
-        _internalNioBuffer(index, length, true).get(dst, dstIndex, length);
+        checkDstIndex(index, length, dstIndex, dst.length);         // 检查合法性
+        _internalNioBuffer(index, length, true).get(dst, dstIndex, length);     // 将NIO的ByteBuffer中的内容获取到dst数组中
         return this;
     }
 

@@ -44,7 +44,9 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
             ReferenceCountUpdater.getUnsafeOffset(AbstractReferenceCountedByteBuf.class, "refCnt");
     /**
      * 新new出一个AtomicIntegerFieldUpdater对象，用于updater对象获取AtomicIntegerFieldUpdater
-     * AtomicIntegerFieldUpdater通过原子的方式对成员变量进行更新等操作，主要为了实现线程安全，消除锁
+     * 1. AtomicIntegerFieldUpdater通过原子的方式对成员变量进行更新等操作，主要为了实现线程安全，消除锁
+     * 2. 为什么不直接用AtomicInteger来实现原子操作呢？这是因为：AtomicInteger类型创建的对象比int类型多占用16B的对象头，在
+     *  Netty这类高并发程序中，当有几十万或者几百万ByteBuf对象时，节约的内存可能就是几十MB或几百MB，节约的内存数还是非常可观的。
      */
     private static final AtomicIntegerFieldUpdater<AbstractReferenceCountedByteBuf> AIF_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
