@@ -294,6 +294,9 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             }
         }
 
+        /**
+         * 完成Connect的Promise（Future）
+         */
         private void fulfillConnectPromise(ChannelPromise promise, boolean wasActive) {
             if (promise == null) {
                 // Closed via cancellation and the promise has been notified already.
@@ -342,7 +345,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
                 // 判断通道是否open，链接是否已绑定
                 boolean wasActive = isActive();
                 doFinishConnect();
-                fulfillConnectPromise(connectPromise, wasActive);
+                fulfillConnectPromise(connectPromise, wasActive);       // pipeline().fireChannelActive()
             } catch (Throwable t) {
                 fulfillConnectPromise(connectPromise, annotateConnectException(t, requestedRemoteAddress));
             } finally {

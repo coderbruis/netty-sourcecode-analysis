@@ -75,14 +75,10 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
         @Override
         public void read() {
             assert eventLoop().inEventLoop();
-            // 服务端的Config
-            final ChannelConfig config = config();
-            // pipleline管道
-            final ChannelPipeline pipeline = pipeline();
-            // 用于查看服务端接受的速率, 说白了就是控制服务端是否接着read 客户端的IO事件
-            final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
-            // 重置配置
-            allocHandle.reset(config);
+            final ChannelConfig config = config();      // 服务端的Config
+            final ChannelPipeline pipeline = pipeline();    // pipleline管道
+            final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();      // 用于查看服务端接受的速率, 说白了就是控制服务端是否接着read 客户端的IO事件
+            allocHandle.reset(config);      // 重置配置
 
             boolean closed = false;
             Throwable exception = null;
@@ -115,12 +111,12 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                     // readBuf.get(i)这里获取到的是NioSocketChannel对象
                     // TODO 是这里把新的NioSocketChannel注册进workerGroup里的，需要注意的是workerGroup注册完之后，只有16个NioEventLoop，但是
                     // TODO 没有NioSocketChannel
-                    pipeline.fireChannelRead(readBuf.get(i));
+                    pipeline.fireChannelRead(readBuf.get(i));       // 调用channelRead
                 }
                 readBuf.clear();
                 allocHandle.readComplete();
                 // 传播channelReadComplete事件
-                pipeline.fireChannelReadComplete();
+                pipeline.fireChannelReadComplete();             // 调用ChannelReadComplete
 
                 if (exception != null) {
                     closed = closeOnReadError(exception);
@@ -159,7 +155,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             if (msg == null) {
                 // Wrote all messages.
                 if ((interestOps & SelectionKey.OP_WRITE) != 0) {
-                    key.interestOps(interestOps & ~SelectionKey.OP_WRITE);
+                    key.interestOps(interestOps & ~SelectionKey.OP_WRITE);          // 将key设置为写事件
                 }
                 break;
             }
