@@ -636,9 +636,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
      */
     private void processSelectedKeys() {
         if (selectedKeys != null) {     // selectedKeys默认不为空，这块selectedKeys就是经过优化过后的keys
-            processSelectedKeysOptimized();
+            processSelectedKeysOptimized(); // 优化点：不用JDK的selector#selectKeys()，性能更好，垃圾回收更少
         } else {
-            processSelectedKeysPlain(selector.selectedKeys());      // TODO 之类什么情况下会出现接收到了感兴趣的key，但是selectedKeys为null？？？
+            processSelectedKeysPlain(selector.selectedKeys());      // 原始处理
         }
     }
 
@@ -654,7 +654,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     void cancel(SelectionKey key) {
         key.cancel();
         cancelledKeys ++;
-        if (cancelledKeys >= CLEANUP_INTERVAL) {
+        if (cancelledKeys >= CLEANUP_INTERVAL) {    // 当移除次数大于256时
             cancelledKeys = 0;
             needsToSelectAgain = true;
         }
@@ -711,7 +711,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // See https://github.com/netty/netty/issues/2363
 
 
-            // 方便GC，这里为啥要方便GC呢？？？？？？？？？？？？？？？？？？？？？？？
+            // 方便GC，无须等到调用其重置再去回收，因为key的attachment比较大，容易造成内存泄漏
             // 这种感兴趣的事件只处理一次就行
             selectedKeys.keys[i] = null;
 
@@ -722,7 +722,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             if (a instanceof AbstractNioChannel) {
                 // 这里为啥要将NioServerSocketChannel强转为AbstractNioChannel呢？
-                // Todo 答：这里强转为AbstractNioChannel是为了准备调用jdk channel的accept方法
+                // 这里强转为AbstractNioChannel是为了准备调用jdk channel的accept方法
                 processSelectedKey(k, (AbstractNioChannel) a);
             } else {
                 @SuppressWarnings("unchecked")
@@ -730,7 +730,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 processSelectedKey(k, task);
             }
 
-            // TODO 什么情况下这里会出现true的情况，需要重新select
+            // 疑问：什么情况下这里会出现true的情况，需要重新select？
+            // 答：每当256个channel从Selector上移除时，就标记needsToSelectAgain为true，表示需要再次轮询
             if (needsToSelectAgain) {
                 // null out entries in the array to allow to have it GC'ed once the Channel close
                 // See https://github.com/netty/netty/issues/2363
@@ -799,7 +800,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // readyOps = 0 表示的是channel注册事件
             // 如果是workerGroup，可能是OP_READ的IO事件，如果是bossGroup，可能是OP_ACCEPT的IO事件
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
-                // 负责读
+                // 负责读，接受连接事件
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

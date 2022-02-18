@@ -143,7 +143,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     }
 
     /**
-     * 读取链接事件
+     * 读取连接事件
      *
      * @param buf
      * @return
@@ -157,7 +157,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
         try {
             if (ch != null) {
                 // new出一个NioSocketChannel，将jdk channel封装成NioSocketChannel              ---- netty的客户端channel
-                buf.add(new NioSocketChannel(this, ch));
+                buf.add(new NioSocketChannel(this, ch));                // 往buf里写入NioSocketChannel
                 return 1;
             }
         } catch (Throwable t) {

@@ -289,7 +289,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
 
         /**
-         * ？？？？ 为啥有是有regFuture.isDone()为true，有时候又为false呢？？？？
+         * regFuture如果完成了，则isDone为true，否则给regFuture添加一个监听器，当完成的时候再进行doBind0的操作。
          */
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.

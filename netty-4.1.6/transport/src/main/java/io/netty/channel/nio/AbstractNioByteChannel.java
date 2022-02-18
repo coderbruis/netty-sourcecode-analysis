@@ -47,7 +47,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             StringUtil.simpleClassName(FileRegion.class) + ')';
 
     /**
-     * 负责写半包的消息
+     * 负责刷新发送缓存链表中的数据
      */
     private final Runnable flushTask = new Runnable() {
         @Override
@@ -141,6 +141,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
         /**
          * 客户端channel的读，读取的是数据
+         * 如果数据量大，数据会分为多次读，最多为16次
          */
         @Override
         public final void read() {
@@ -151,6 +152,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             }
             final ChannelPipeline pipeline = pipeline();
             final ByteBufAllocator allocator = config.getAllocator();
+            // 自适应数据大小的分配器，在io.netty.channel.DefaultChannelConfig中设置的RecvByteBufAllocator，默认是AdaptiveRecvByteBufAllocator
             final RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
             allocHandle.reset(config);
 
@@ -158,8 +160,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             boolean close = false;
             try {
                 do {
-                    byteBuf = allocHandle.allocate(allocator);
-                    allocHandle.lastBytesRead(doReadBytes(byteBuf));
+                    byteBuf = allocHandle.allocate(allocator);                      // 尽可能分配合适的大小: guess()方法很形象，猜下系统分配了多少？
+                    allocHandle.lastBytesRead(doReadBytes(byteBuf));                // 读并且记录读了多少，如果读满了，下次continue的话就直接扩容
                     if (allocHandle.lastBytesRead() <= 0) {
                         // nothing was read. release the buffer.
                         byteBuf.release();
@@ -172,19 +174,18 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                         break;
                     }
 
-                    allocHandle.incMessagesRead(1);
+                    allocHandle.incMessagesRead(1);                     // 表示读了一次
                     readPending = false;
 
                     /**
-                     * 触发pipeline中的chanelRead
-                     * TODO 这里会触发ServerBootstrapAcceptor
+                     * 触发pipeline中的chanelRead，把读取到的数据传播出去
                      */
                     pipeline.fireChannelRead(byteBuf);
                     byteBuf = null;
                 } while (allocHandle.continueReading());
 
-                allocHandle.readComplete();
-                pipeline.fireChannelReadComplete();
+                allocHandle.readComplete();                     // 记录这次读事件总共读了多少数据，计算下次分配大小
+                pipeline.fireChannelReadComplete();             // 相当于完成本次读事件的处理
 
                 if (close) {
                     closeOnRead(pipeline);
@@ -273,20 +274,30 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
     @Override
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+        // 写请求的自旋次数，默认为12次
         int writeSpinCount = config().getWriteSpinCount();
         do {
-            // 从buffer（环形数组）拿出一条消息
+            // 获取当前Channel的缓存ChannelOutboundBuffer中的当前待刷新消息
             Object msg = in.current();
+            // 所有消息都发送成功了
             if (msg == null) {
                 // Wrote all messages.
-                // 如果buffer里的消息为空，则表明已经flush出去了，则清楚“半包标识”。
+                // 如果buffer里的消息为空，则表明已经flush出去了，清除OP_WRITE事件
                 clearOpWrite();
                 // Directly return here so incompleteWrite(...) is not called.
+                // 直接返回，没必要再添加写任务
                 return;
             }
+            // 发送数据
             writeSpinCount -= doWriteInternal(in, msg);
         } while (writeSpinCount > 0);
 
+        /**
+         * 当因缓冲区满了而发送失败时，
+         * doWriteInternal返回Integer.MAX_VALUE
+         * 此时writeSpinCount < 0 为true.
+         * 当发送16次还未全部发送完，但每次都写成功时writeSpinCount为0
+         */
         incompleteWrite(writeSpinCount < 0);
     }
 
@@ -321,15 +332,18 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
     protected final void incompleteWrite(boolean setOpWrite) {
         // Did not write completely.
         if (setOpWrite) {
+            // 将OP_WRITE写操作事件添加到Channel的选择Key兴趣事件集中
             setOpWrite();
         } else {
             // It is possible that we have set the write OP, woken up by NIO because the socket is writable, and then
             // use our write quantum. In this case we no longer want to set the write OP because the socket is still
             // writable (as far as we know). We will find out next time we attempt to write if the socket is writable
             // and set the write OP if necessary.
+            // 清除Channel选择Key兴趣事件集中的OP_WRITE写操作
             clearOpWrite();
 
             // Schedule flush again later so other tasks can be picked up in the meantime
+            // 将写任务添加到EventLoop线程中，后面继续发送
             eventLoop().execute(flushTask);
         }
     }

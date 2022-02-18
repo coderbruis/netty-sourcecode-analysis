@@ -393,7 +393,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
         // jdk channel
         SocketChannel ch = javaChannel();
-        // 写自旋次数
+        // 写自旋次数，默认为16次
         int writeSpinCount = config().getWriteSpinCount();
         do {
             if (in.isEmpty()) {

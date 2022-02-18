@@ -116,7 +116,7 @@ public final class SocketUtils {
             return AccessController.doPrivileged(new PrivilegedExceptionAction<SocketChannel>() {
                 @Override
                 public SocketChannel run() throws IOException {
-                    return serverSocketChannel.accept();
+                    return serverSocketChannel.accept();        // 非阻塞模式下，没有链接请求时，返回null
                 }
             });
         } catch (PrivilegedActionException e) {

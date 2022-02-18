@@ -391,7 +391,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         for (;;) {
             try {
                 /**
-                 * 调用selectableChannel的register方法，用于在给定的selector上注册这个通道channel，并返回一个选择键
+                 * 调用selectableChannel的register方法，用于在给定的NioEventLoop上的selector上注册这个通道channel，并返回一个选择键
                  *
                  * OP_READ = 1 << 0                 读操作位
                  * OP_WRITE = 1 << 2                写操作位
@@ -412,6 +412,10 @@ public abstract class AbstractNioChannel extends AbstractChannel {
                 if (!selected) {
                     // Force the Selector to select now as the "canceled" SelectionKey may still be
                     // cached and not removed because no Select.select(..) operation was called yet.
+                    /**
+                     * 由于未调用select#select()，因此可能仍然在缓存，而未删除但是已经取消了的selectionKey，强制调用selectNow()
+                     * 将selectionKey从Selector上删除
+                     */
                     eventLoop().selectNow();
                     selected = true;
                 } else {

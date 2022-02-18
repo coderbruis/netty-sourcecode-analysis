@@ -1195,6 +1195,14 @@ public abstract class AbstractByteBuf extends ByteBuf {
         return writtenBytes;
     }
 
+    /**
+     *
+     * @param in            NioSocketChannel，调用其read方法读取网络中传输过来的数据
+     * @param length the maximum number of bytes to transfer
+     *
+     * @return
+     * @throws IOException
+     */
     @Override
     public int writeBytes(ScatteringByteChannel in, int length) throws IOException {
         ensureWritable(length);
